@@ -1,0 +1,13 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  rust:
+    uses: timada-org/.github/.github/workflows/rust-release.yml@v1.3.0
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+      DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
