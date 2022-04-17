@@ -9,9 +9,13 @@ plugins:
     verifyConditionsCmd: "semantic-release-rust verify-conditions"
     prepareCmd: "semantic-release-rust prepare ${nextRelease.version}"
   - path: "@semantic-release/exec"
+    prepareCmd: "cargo update"
+  - path: "@semantic-release/exec"
     prepareCmd: "cargo build --release"
   - path: "@codedependant/semantic-release-docker"
     dockerProject: "timada0"
     dockerImage: "pikav"
   - path: "@semantic-release/git"
-    assets: Cargo.toml
+    assets:
+      - Cargo.toml
+      - Cargo.lock
