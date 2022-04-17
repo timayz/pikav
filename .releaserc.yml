@@ -8,6 +8,8 @@ plugins:
   - - "@semantic-release/exec"
     - verifyConditionsCmd: "semantic-release-rust verify-conditions"
       prepareCmd: "semantic-release-rust prepare ${nextRelease.version}"
+  - - "@semantic-release/exec"
+      prepareCmd: "cargo build --release"
   - - "@codedependant/semantic-release-docker"
     - dockerProject: "timada0"
       dockerImage: "pikav"
