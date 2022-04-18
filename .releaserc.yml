@@ -9,7 +9,7 @@ plugins:
     verifyConditionsCmd: "semantic-release-rust verify-conditions"
     prepareCmd: "semantic-release-rust prepare ${nextRelease.version}"
   - path: "@semantic-release/exec"
-    prepareCmd: "cargo update"
+    prepareCmd: "cargo update -p pikav"
   - path: "@semantic-release/exec"
     prepareCmd: "cargo build --release"
   - path: "@codedependant/semantic-release-docker"
