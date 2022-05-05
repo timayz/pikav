@@ -1,7 +1,9 @@
-FROM gcr.io/distroless/cc
+FROM gcr.io/distroless/static
 
-COPY ./target/release/pikav /
+COPY ./pikav /
 
 EXPOSE 6750
 
-CMD ["./pikav"]
+CMD ["/pikav"]
+
+# RUN CGO_ENABLED=0 go build -o /go/bin/app
