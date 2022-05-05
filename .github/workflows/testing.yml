@@ -2,5 +2,5 @@ name: Testing
 on: pull_request
 
 jobs:
-  rust:
-    uses: timada-org/.github/.github/workflows/rust-testing.yml@v1.3.2
+  go:
+    uses: timada-org/.github/.github/workflows/go-testing.yml@feat/go

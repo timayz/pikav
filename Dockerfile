@@ -1,7 +1,7 @@
-FROM gcr.io/distroless/cc
+FROM gcr.io/distroless/static
 
-COPY ./target/release/pikav /
+COPY ./pikav /
 
 EXPOSE 6750
 
-CMD ["./pikav"]
+CMD ["/pikav"]
