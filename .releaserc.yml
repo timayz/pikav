@@ -5,8 +5,6 @@ plugins:
   - "@semantic-release/commit-analyzer"
   - "@semantic-release/release-notes-generator"
   - "@semantic-release/github"
-  - path: "@semantic-release/exec"
-    prepareCmd: "GO_ENABLED=0 go build"
   - path: "@codedependant/semantic-release-docker"
     dockerProject: "timada0"
     dockerImage: "pikav"
