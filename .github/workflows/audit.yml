@@ -9,4 +9,4 @@ on:
 
 jobs:
   go:
-    uses: timada-org/.github/.github/workflows/go-audit.yml@v2.1.0
+    uses: timada-org/.github/.github/workflows/go-audit.yml@feat/go-test
