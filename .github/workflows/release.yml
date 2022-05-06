@@ -6,7 +6,7 @@ on:
 
 jobs:
   go:
-    uses: timada-org/.github/.github/workflows/go-release.yml@feat/go-test
+    uses: timada-org/.github/.github/workflows/go-release.yml@v2.2.0
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
