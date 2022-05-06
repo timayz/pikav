@@ -3,4 +3,4 @@ on: pull_request
 
 jobs:
   go:
-    uses: timada-org/.github/.github/workflows/go-testing.yml@v2.1.0
+    uses: timada-org/.github/.github/workflows/go-testing.yml@v2.2.0
