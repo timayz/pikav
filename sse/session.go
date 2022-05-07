@@ -39,8 +39,14 @@ func newSession(w *bufio.Writer) (*Session, error) {
 func (s *Session) send(e *Event) {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
-	enc.Encode(e)
-	fmt.Fprintf(s.writer, "data: %v\n\n", buf.String())
+
+	go func() {
+		if err := enc.Encode(e); err != nil {
+			s.message <- ""
+		} else {
+			s.message <- buf.String()
+		}
+	}()
 }
 
 func (s *Session) start() {
@@ -48,7 +54,7 @@ func (s *Session) start() {
 
 	go func() {
 		for {
-			time.Sleep(1 * time.Second)
+			time.Sleep(10 * time.Second)
 			fmt.Fprint(s.writer, "ping\n\n")
 
 			if err := s.writer.Flush(); err != nil {
@@ -62,6 +68,10 @@ func (s *Session) start() {
 		select {
 
 		case message := <-s.message:
+			if message == "" {
+				return
+			}
+
 			fmt.Fprintf(s.writer, "data: %s\n\n", message)
 
 			if err := s.writer.Flush(); err != nil {
