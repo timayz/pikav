@@ -11,21 +11,21 @@ import (
 func TestNameValidate(t *testing.T) {
 
 	t.Run("sys", func(t *testing.T) {
-		_, err1 := topic.NewTopicName("$SYS")
+		_, err1 := topic.NewName("$SYS")
 		require.NoError(t, err1)
-		_, err2 := topic.NewTopicName("$SYS/broker/connection/test.cosm-energy/state")
+		_, err2 := topic.NewName("$SYS/broker/connection/test.cosm-energy/state")
 		require.NoError(t, err2)
 	})
 
 	t.Run("slash", func(t *testing.T) {
-		_, err := topic.NewTopicName("/")
+		_, err := topic.NewName("/")
 		require.NoError(t, err)
 	})
 
 	t.Run("basic", func(t *testing.T) {
-		_, err1 := topic.NewTopicName("/finance")
+		_, err1 := topic.NewName("/finance")
 		require.NoError(t, err1)
-		_, err2 := topic.NewTopicName("/finance//def")
+		_, err2 := topic.NewName("/finance//def")
 		require.NoError(t, err2)
 	})
 }

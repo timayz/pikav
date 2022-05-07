@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-var TopicFilterRegex = regexp.MustCompile(`^(([^+#]*|\+)(/([^+#]*|\+))*(/#)?|#)$`)
+var topicFilterRegex = regexp.MustCompile(`^(([^+#]*|\+)(/([^+#]*|\+))*(/#)?|#)$`)
 
 type TopicFilter struct {
 	value string
 }
 
-func NewTopicFilter(value string) (*TopicFilter, error) {
+func NewFilter(value string) (*TopicFilter, error) {
 	if value == "" {
 		return nil, fmt.Errorf("topic filter: %s cannot be empty", value)
 	}
@@ -21,7 +21,7 @@ func NewTopicFilter(value string) (*TopicFilter, error) {
 		return nil, fmt.Errorf("topic filter: %s cannot be have more than 65535 bytes", value)
 	}
 
-	if !TopicFilterRegex.MatchString(value) {
+	if !topicFilterRegex.MatchString(value) {
 		return nil, fmt.Errorf("topic filter: %s format is invalid", value)
 	}
 

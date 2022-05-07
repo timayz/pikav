@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-var TopicNameRegex = regexp.MustCompile("^[^#+]+$")
+var topicNameRegex = regexp.MustCompile("^[^#+]+$")
 
 type TopicName struct {
 	value string
 }
 
-func NewTopicName(value string) (*TopicName, error) {
+func NewName(value string) (*TopicName, error) {
 	if value == "" {
 		return nil, fmt.Errorf("topic name: %s cannot be empty", value)
 	}
@@ -21,7 +21,7 @@ func NewTopicName(value string) (*TopicName, error) {
 		return nil, fmt.Errorf("topic name: %s cannot be have more than 65535 bytes", value)
 	}
 
-	if !TopicNameRegex.MatchString(value) {
+	if !topicNameRegex.MatchString(value) {
 		return nil, fmt.Errorf("topic name: %s format is invalid", value)
 	}
 
