@@ -50,36 +50,28 @@ func (s *Session) send(e *Event) {
 }
 
 func (s *Session) start() {
-	var ping = make(chan string)
-
 	go func() {
 		for {
 			time.Sleep(10 * time.Second)
 			fmt.Fprint(s.writer, "ping\n\n")
 
 			if err := s.writer.Flush(); err != nil {
-				ping <- "close"
+				s.message <- ""
 				break
 			}
 		}
 	}()
 
 	for {
-		select {
+		message := <-s.message
+		if message == "" {
+			break
+		}
 
-		case message := <-s.message:
-			if message == "" {
-				return
-			}
+		fmt.Fprintf(s.writer, "data: %s\n\n", message)
 
-			fmt.Fprintf(s.writer, "data: %s\n\n", message)
-
-			if err := s.writer.Flush(); err != nil {
-				return
-			}
-
-		case <-ping:
-			return
+		if err := s.writer.Flush(); err != nil {
+			break
 		}
 	}
 }
