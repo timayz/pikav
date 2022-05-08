@@ -24,11 +24,16 @@ func init() {
 
 	baseDir := os.Getenv("PIKAV_CONFIG_DIR")
 
-	err := config.LoadFiles(fmt.Sprintf("%sconfig.yml", baseDir))
-	if err != nil {
+	if err := config.LoadFiles(fmt.Sprintf("%sconfig.yml", baseDir)); err != nil {
 		panic(err)
 	}
 
-	config.LoadExists(fmt.Sprintf("%sconfig.local.yml", baseDir))
-	config.BindStruct("", &AppConfig)
+	if err := config.LoadExists(fmt.Sprintf("%sconfig.local.yml", baseDir)); err != nil {
+		panic(err)
+	}
+
+	if err := config.BindStruct("", &AppConfig); err != nil {
+		panic(err)
+	}
+
 }
