@@ -35,5 +35,4 @@ func init() {
 	if err := config.BindStruct("", &AppConfig); err != nil {
 		panic(err)
 	}
-
 }
