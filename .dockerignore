@@ -1,3 +1,5 @@
 .github
 Dockerfile
 .releaserc.yml
+docker-compose.yml
+Makefile

@@ -9,7 +9,10 @@ RUN CGO_ENABLED=0 go build -o /go/bin/app
 
 FROM gcr.io/distroless/static
 
+ENV PIKAV_CONFIG_DIR=/etc/pikav/
+
 EXPOSE 6750
 
 COPY --from=build-env /go/bin/app /
+COPY --from=build-env /go/src/app/config.yml $PIKAV_CONFIG_DIR
 CMD ["/app"]
