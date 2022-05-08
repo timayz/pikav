@@ -20,7 +20,7 @@ func (c *Context) add(s *Session) {
 	c.sessions[s.id] = *s
 	s.send(&Event{
 		Topic: "$SYS/session",
-		Name:  "token",
+		Name:  "created",
 		Data:  s.id,
 	})
 }
@@ -35,15 +35,17 @@ type Server struct {
 	context Context
 }
 
-func New() *Server {
-	return &Server{
+var server Server
+
+func init() {
+	server = Server{
 		context: Context{
 			sessions: make(map[string]Session),
 		},
 	}
 }
 
-func (s *Server) Handler(c *fiber.Ctx) error {
+func Handler(c *fiber.Ctx) error {
 	c.Set("Content-Type", "text/event-stream")
 	c.Set("Cache-Control", "no-cache")
 	c.Set("Connection", "keep-alive")
@@ -51,8 +53,8 @@ func (s *Server) Handler(c *fiber.Ctx) error {
 
 	c.Context().SetBodyStreamWriter(fasthttp.StreamWriter(func(w *bufio.Writer) {
 		if session, err := newSession(w); err == nil {
-			s.context.add(session)
-			defer s.context.remove(session)
+			server.context.add(session)
+			defer server.context.remove(session)
 			session.start()
 		}
 	}))
