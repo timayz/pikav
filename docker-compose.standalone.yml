@@ -3,6 +3,7 @@ version: "3.9"
 services:
   pikav:
     image: timada0/pikav:0.3.0
+    pull_policy: always
     ports:
       - "6750:6750"
     depends_on:

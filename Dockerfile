@@ -5,7 +5,7 @@ WORKDIR /go/src/app
 COPY go_pkg_mod ~/go/pkg/mod
 COPY . .
 
-RUN CGO_ENABLED=0 go build ./cmd/pikav -o /go/bin/app
+RUN CGO_ENABLED=0 go build -o /go/bin/app ./cmd/pikav
 
 FROM gcr.io/distroless/static
 
