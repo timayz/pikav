@@ -1,4 +1,4 @@
-package config
+package pikav
 
 import (
 	"fmt"
@@ -8,13 +8,21 @@ import (
 	"github.com/gookit/config/v2/yaml"
 )
 
-type Config struct {
-	JwksURL string `config:"jwks_url"`
+type Broker struct {
+	URL   string `config:"url"`
+	Topic string `config:"topic"`
 }
 
-var AppConfig Config
+type Config struct {
+	ID      string `config:"id"`
+	Addr    string `config:"addr"`
+	JwksURL string `config:"jwks_url"`
+	Broker  Broker `config:"broker"`
+}
 
-func init() {
+func NewConfig() *Config {
+	var appConfig Config
+
 	config.WithOptions(func(opt *config.Options) {
 		opt.ParseEnv = true
 		opt.DecoderConfig.TagName = "config"
@@ -22,7 +30,11 @@ func init() {
 
 	config.AddDriver(yaml.Driver)
 
-	baseDir := os.Getenv("PIKAV_CONFIG_DIR")
+	baseDir := "configs/"
+
+	if p := os.Getenv("PIKAV_CONFIG_DIR"); p != "" {
+		baseDir = p
+	}
 
 	if err := config.LoadFiles(fmt.Sprintf("%sconfig.yml", baseDir)); err != nil {
 		panic(err)
@@ -32,7 +44,9 @@ func init() {
 		panic(err)
 	}
 
-	if err := config.BindStruct("", &AppConfig); err != nil {
+	if err := config.BindStruct("", &appConfig); err != nil {
 		panic(err)
 	}
+
+	return &appConfig
 }

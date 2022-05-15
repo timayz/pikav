@@ -9,7 +9,7 @@ import (
 var topicNameRegex = regexp.MustCompile("^[^#+]+$")
 
 type TopicName struct {
-	value string
+	Value string `json:"value"`
 }
 
 func NewName(value string) (*TopicName, error) {
@@ -29,5 +29,5 @@ func NewName(value string) (*TopicName, error) {
 }
 
 func (t *TopicName) IsServerSpecific() bool {
-	return strings.HasPrefix(t.value, "$")
+	return strings.HasPrefix(t.Value, "$")
 }

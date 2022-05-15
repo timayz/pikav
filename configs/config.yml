@@ -1,0 +1,8 @@
+id: pikav-${PIKAV_REGION|eu-west-1}${PIKAV_ZONE|a}
+addr: ${PIKAV_ADDR|:6750}
+
+jwks_url: ${PIKAV_JWKS_URL|http://127.0.0.1:4456/.well-known/jwks.json}
+
+broker:
+  url: ${PIKAV_BROKER_URL|pulsar://localhost:6650}
+  topic: non-persistent://timada/pikav/${PIKAV_REGION|eu-west-1}
