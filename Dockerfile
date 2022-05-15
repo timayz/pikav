@@ -14,5 +14,5 @@ ENV PIKAV_CONFIG_DIR=/etc/pikav/
 EXPOSE 6750
 
 COPY --from=build-env /go/bin/app /
-COPY --from=build-env /go/src/app/config.yml $PIKAV_CONFIG_DIR
+COPY --from=build-env /go/src/app/configs/config.yml $PIKAV_CONFIG_DIR
 CMD ["/app"]
