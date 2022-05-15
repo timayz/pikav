@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/timada-org/pikav/topic"
+	"github.com/timada-org/pikav/pkg/topic"
 )
 
 func TestFilterValidate(t *testing.T) {

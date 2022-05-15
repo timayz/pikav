@@ -9,7 +9,7 @@ import (
 var topicFilterRegex = regexp.MustCompile(`^(([^+#]*|\+)(/([^+#]*|\+))*(/#)?|#)$`)
 
 type TopicFilter struct {
-	value string
+	Value string `json:"value"`
 }
 
 func NewFilter(value string) (*TopicFilter, error) {
@@ -29,8 +29,8 @@ func NewFilter(value string) (*TopicFilter, error) {
 }
 
 func (t *TopicFilter) Match(topic_name *TopicName) bool {
-	var tnItr = strings.Split(topic_name.value, "/")
-	var ftItr = strings.Split(t.value, "/")
+	var tnItr = strings.Split(topic_name.Value, "/")
+	var ftItr = strings.Split(t.Value, "/")
 
 	var firstFt = ftItr[0]
 	var firstTn = tnItr[0]
