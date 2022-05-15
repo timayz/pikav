@@ -13,8 +13,11 @@ stop:
 down:
 	docker-compose down -v --remove-orphan
 
-standalone:
+standalone: standalone.pull
 	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up -d
+
+standalone.pull:
+	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml pull pikav
 
 standalone.down:
 	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up -d

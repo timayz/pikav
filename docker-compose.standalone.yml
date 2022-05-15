@@ -2,11 +2,11 @@ version: "3.9"
 
 services:
   pikav:
-    image: timada0/pikav:0.3.0
-    pull_policy: always
+    image: timada0/pikav
     ports:
       - "6750:6750"
     depends_on:
       - oathkeeper
     environment:
       - PIKAV_JWKS_URL=http://oathkeeper:4456/.well-known/jwks.json
+      - PIKAV_BROKER_URL=pulsar://pulsar:6650
