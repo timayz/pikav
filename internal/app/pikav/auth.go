@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type Auth struct{ jwks keyfunc.JWKS }
+type Auth struct{ jwks *keyfunc.JWKS }
 
 func newAuth(url string) *Auth {
 	options := keyfunc.Options{
@@ -29,7 +29,7 @@ func newAuth(url string) *Auth {
 		log.Fatalf("Failed to create JWKS from resource at the given URL.\nError: %s", err.Error())
 	}
 
-	return &Auth{*jwks}
+	return &Auth{jwks}
 }
 
 func (auth *Auth) sessionID(r *http.Request) string {

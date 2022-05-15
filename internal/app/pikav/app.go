@@ -97,7 +97,7 @@ func (app *App) subscribe() httprouter.Handle {
 			return
 		}
 
-		app.client.Send(&client.Event{
+		err = app.client.Send(&client.Event{
 			UserID: userID,
 			Topic:  t,
 			Name:   SYSSessionSubscribed,
@@ -108,8 +108,19 @@ func (app *App) subscribe() httprouter.Handle {
 		})
 
 		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("{\"success\": true}"))
+
+		if err != nil {
+			log.Println(err.Error())
+			http.Error(w, "{\"success\": false}", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Add("Content-Type", "application/json")
+
+		if _, err := w.Write([]byte("{\"success\": true}")); err != nil {
+			log.Println(err.Error())
+			return
+		}
 	}
 }
 
@@ -141,7 +152,7 @@ func (app *App) unsubscribe() httprouter.Handle {
 			return
 		}
 
-		app.client.Send(&client.Event{
+		err = app.client.Send(&client.Event{
 			UserID: userID,
 			Topic:  t,
 			Name:   SYSSessionUnsubscribed,
@@ -152,7 +163,18 @@ func (app *App) unsubscribe() httprouter.Handle {
 		})
 
 		w.Header().Add("Content-Type", "application/json")
+
+		if err != nil {
+			log.Println(err.Error())
+			http.Error(w, "{\"success\": false}", http.StatusInternalServerError)
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("{\"success\": true}"))
+
+		if _, err := w.Write([]byte("{\"success\": true}")); err != nil {
+			log.Println(err.Error())
+			return
+		}
 	}
 }

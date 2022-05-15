@@ -21,7 +21,7 @@ func main() {
 
 			name, _ := topic.NewName("todos")
 
-			c.Send(&client.Event{
+			_ = c.Send(&client.Event{
 				UserID: "9eac6c3d-d242-48ad-a2e0-52ada6f1358f",
 				Topic:  name,
 				Name:   "Created",
@@ -32,5 +32,5 @@ func main() {
 		},
 	}
 
-	rootCmd.Execute()
+	_ = rootCmd.Execute()
 }
