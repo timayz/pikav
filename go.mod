@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/MicahParks/keyfunc v1.1.0
 	github.com/apache/pulsar-client-go v0.8.1
+	github.com/glebarez/sqlite v1.4.4
 	github.com/golang-jwt/jwt/v4 v4.4.1
 	github.com/gookit/config/v2 v2.1.0
 	github.com/julienschmidt/httprouter v1.3.0
@@ -12,6 +13,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.1
+	gorm.io/gorm v1.23.5
 )
 
 require (
@@ -25,15 +27,19 @@ require (
 	github.com/danieljoos/wincred v1.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dvsekhvalnov/jose2go v0.0.0-20200901110807-248326c1351b // indirect
+	github.com/glebarez/go-sqlite v1.17.1 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/gookit/goutil v0.5.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d // indirect
 	github.com/klauspost/compress v1.15.2 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
@@ -50,6 +56,7 @@ require (
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.26.0 // indirect
 	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
@@ -65,4 +72,8 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	modernc.org/libc v1.16.1 // indirect
+	modernc.org/mathutil v1.4.1 // indirect
+	modernc.org/memory v1.1.1 // indirect
+	modernc.org/sqlite v1.17.1 // indirect
 )
