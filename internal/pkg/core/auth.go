@@ -1,7 +1,8 @@
-package pikav
+package core
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -13,7 +14,7 @@ import (
 
 type Auth struct{ jwks *keyfunc.JWKS }
 
-func newAuth(url string) *Auth {
+func NewAuth(url string) (*Auth, error) {
 	options := keyfunc.Options{
 		RefreshErrorHandler: func(err error) {
 			log.Printf("There was an error with the jwt.Keyfunc\nError: %s", err.Error())
@@ -26,17 +27,17 @@ func newAuth(url string) *Auth {
 
 	jwks, err := keyfunc.Get(url, options)
 	if err != nil {
-		log.Fatalf("Failed to create JWKS from resource at the given URL.\nError: %s", err.Error())
+		return nil, fmt.Errorf("failed to create JWKS from resource at the given URL.\nError: %s", err.Error())
 	}
 
-	return &Auth{jwks}
+	return &Auth{jwks}, nil
 }
 
-func (auth *Auth) sessionID(r *http.Request) string {
+func (auth *Auth) SessionID(r *http.Request) string {
 	return r.Header.Get("X-Pikav-Session-ID")
 }
 
-func (auth *Auth) userID(r *http.Request) (string, error) {
+func (auth *Auth) UserID(r *http.Request) (string, error) {
 	data := strings.Split(r.Header.Get("Authorization"), " ")
 	if len(data) != 2 && data[0] != "Bearer" {
 		return "", errors.New("invalid authorization http header")

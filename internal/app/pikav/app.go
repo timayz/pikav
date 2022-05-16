@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/timada-org/pikav/internal/pkg/core"
 	"github.com/timada-org/pikav/internal/pkg/sse"
 	"github.com/timada-org/pikav/pkg/client"
 	"github.com/timada-org/pikav/pkg/topic"
@@ -13,13 +14,16 @@ import (
 type App struct {
 	server *sse.Server
 	sender *Sender
-	config *Config
-	auth   *Auth
+	config *core.Config
+	auth   *core.Auth
 	client *client.Client
 }
 
 func New() *App {
-	config := NewConfig()
+	config, err := core.NewConfig()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	c, err := client.New(client.ClientOptions{
 		URL:   config.Broker.URL,
@@ -40,11 +44,16 @@ func New() *App {
 		server: server,
 	})
 
+	auth, err := core.NewAuth(config.JwksURL)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	app := &App{
 		server: server,
 		sender: sender,
 		config: config,
-		auth:   newAuth(config.JwksURL),
+		auth:   auth,
 		client: c,
 	}
 
@@ -56,8 +65,8 @@ func (app *App) Listen() error {
 
 	router := httprouter.New()
 	router.GET("/sse", app.server.HandleFunc())
-	router.PUT("/subscribe/:filter", app.subscribe())
-	router.PUT("/unsubscribe/:filter", app.unsubscribe())
+	router.PUT("/subscribe/*filter", app.subscribe())
+	router.PUT("/unsubscribe/*filter", app.unsubscribe())
 
 	log.Printf("Listening on %s", app.config.Addr)
 
@@ -71,20 +80,19 @@ func (app *App) Close() {
 
 func (app *App) subscribe() httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		userID, err := app.auth.userID(r)
+		userID, err := app.auth.UserID(r)
 		if err != nil {
 			http.Error(w, "Bad request.", http.StatusBadRequest)
 			return
 		}
 
-		sessionId := app.auth.sessionID(r)
+		sessionId := app.auth.SessionID(r)
 		if sessionId == "" {
 			http.Error(w, "Bad request.", http.StatusBadRequest)
 			return
 		}
 
-		filter, err := topic.NewFilter(p.ByName("filter"))
-
+		filter, err := topic.NewFilter(p.ByName("filter")[1:])
 		if err != nil {
 			http.Error(w, "Bad request.", http.StatusBadRequest)
 			return
@@ -115,8 +123,6 @@ func (app *App) subscribe() httprouter.Handle {
 			return
 		}
 
-		w.Header().Add("Content-Type", "application/json")
-
 		if _, err := w.Write([]byte("{\"success\": true}")); err != nil {
 			log.Println(err.Error())
 			return
@@ -126,19 +132,19 @@ func (app *App) subscribe() httprouter.Handle {
 
 func (app *App) unsubscribe() httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		userID, err := app.auth.userID(r)
+		userID, err := app.auth.UserID(r)
 		if err != nil {
 			http.Error(w, "Bad request.", http.StatusBadRequest)
 			return
 		}
 
-		sessionId := app.auth.sessionID(r)
+		sessionId := app.auth.SessionID(r)
 		if sessionId == "" {
 			http.Error(w, "Bad request.", http.StatusBadRequest)
 			return
 		}
 
-		filter, err := topic.NewFilter(p.ByName("filter"))
+		filter, err := topic.NewFilter(p.ByName("filter")[1:])
 
 		if err != nil {
 			http.Error(w, "Bad request.", http.StatusBadRequest)

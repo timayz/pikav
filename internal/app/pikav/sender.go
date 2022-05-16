@@ -97,8 +97,8 @@ func (d *Sender) handle(event *client.Event) {
 		return
 	}
 
-	d.mux.Lock()
-	defer d.mux.Unlock()
+	d.mux.RLock()
+	defer d.mux.RUnlock()
 
 	subscriptions, ok := d.subscriptions[event.UserID]
 
@@ -162,8 +162,8 @@ func (d *Sender) handleSysSessionUnsubscribed(event *client.Event) {
 		return
 	}
 
-	d.mux.Lock()
-	defer d.mux.Unlock()
+	d.mux.RLock()
+	defer d.mux.RUnlock()
 
 	if _, ok := d.server.Get(data.SessionId); !ok {
 		return

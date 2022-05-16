@@ -1,4 +1,4 @@
-package pikav
+package core
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ type Config struct {
 	Broker  Broker `config:"broker"`
 }
 
-func NewConfig() *Config {
+func NewConfig() (*Config, error) {
 	var appConfig Config
 
 	config.WithOptions(func(opt *config.Options) {
@@ -37,16 +37,16 @@ func NewConfig() *Config {
 	}
 
 	if err := config.LoadFiles(fmt.Sprintf("%sconfig.yml", baseDir)); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if err := config.LoadExists(fmt.Sprintf("%sconfig.local.yml", baseDir)); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if err := config.BindStruct("", &appConfig); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return &appConfig
+	return &appConfig, nil
 }
