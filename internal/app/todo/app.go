@@ -39,7 +39,9 @@ func New() *App {
 		log.Fatalln(err)
 	}
 
-	db.AutoMigrate(&Todo{})
+	if err := db.AutoMigrate(&Todo{}); err != nil {
+		log.Fatalln(err)
+	}
 
 	c, err := client.New(client.ClientOptions{
 		URL:   config.Broker.URL,
@@ -126,7 +128,7 @@ func (app *App) create() httprouter.Handle {
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))
 
-			app.c.Send(&client.Event{
+			_ = app.c.Send(&client.Event{
 				UserID: userID,
 				Topic:  topic,
 				Name:   "Created",
@@ -179,7 +181,7 @@ func (app *App) update() httprouter.Handle {
 		todo.Text = input.Text
 		todo.Done = input.Done
 
-		app.db.Save(&todo)
+		_ = app.db.Save(&todo)
 
 		go func() {
 			n := rand.Intn(5)
@@ -225,7 +227,7 @@ func (app *App) delete() httprouter.Handle {
 			return
 		}
 
-		app.db.Delete(&todo)
+		_ = app.db.Delete(&todo)
 
 		go func() {
 			n := rand.Intn(5)
