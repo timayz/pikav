@@ -83,7 +83,10 @@ func (app *App) list() httprouter.Handle {
 		}
 
 		var todos []Todo
-		_ = app.db.Where("user_id = ?", userID).Find(&todos)
+		if err := app.db.Where("user_id = ?", userID).Find(&todos).Error; err != nil {
+			http.Error(w, "Internal server error.", http.StatusInternalServerError)
+			return
+		}
 
 		todosB, _ := json.Marshal(todos)
 
@@ -117,7 +120,7 @@ func (app *App) create() httprouter.Handle {
 
 		todo := Todo{Text: input.Text, Done: false, UserID: userID}
 
-		if result := app.db.Create(&todo); result.Error != nil {
+		if err := app.db.Create(&todo).Error; err != nil {
 			http.Error(w, "Internal Server Error.", http.StatusInternalServerError)
 			return
 		}
@@ -181,7 +184,10 @@ func (app *App) update() httprouter.Handle {
 		todo.Text = input.Text
 		todo.Done = input.Done
 
-		_ = app.db.Save(&todo)
+		if err := app.db.Save(&todo).Error; err != nil {
+			http.Error(w, "Internal server error.", http.StatusInternalServerError)
+			return
+		}
 
 		go func() {
 			n := rand.Intn(5)
@@ -189,7 +195,7 @@ func (app *App) update() httprouter.Handle {
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))
 
-			app.c.Send(&client.Event{
+			_ = app.c.Send(&client.Event{
 				UserID: userID,
 				Topic:  topic,
 				Name:   "Updated",
@@ -227,7 +233,10 @@ func (app *App) delete() httprouter.Handle {
 			return
 		}
 
-		_ = app.db.Delete(&todo)
+		if err := app.db.Delete(&todo).Error; err != nil {
+			http.Error(w, "Internal server error.", http.StatusInternalServerError)
+			return
+		}
 
 		go func() {
 			n := rand.Intn(5)
@@ -235,7 +244,7 @@ func (app *App) delete() httprouter.Handle {
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))
 
-			app.c.Send(&client.Event{
+			_ = app.c.Send(&client.Event{
 				UserID: userID,
 				Topic:  topic,
 				Name:   "Deleted",
