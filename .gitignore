@@ -1,2 +1,3 @@
 /target
 /configs/config.local.yml
+/gorm.db
