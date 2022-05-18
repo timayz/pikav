@@ -65,8 +65,8 @@ func (app *App) Listen() error {
 
 	router := httprouter.New()
 	router.GET("/sse", app.server.HandleFunc())
-	router.PUT("/subscribe/*filter", app.subscribe())
-	router.PUT("/unsubscribe/*filter", app.unsubscribe())
+	router.PUT("/sub/*filter", app.subscribe())
+	router.PUT("/unsub/*filter", app.unsubscribe())
 
 	log.Printf("Listening on %s", app.config.Addr)
 
@@ -109,7 +109,7 @@ func (app *App) subscribe() httprouter.Handle {
 			UserID: userID,
 			Topic:  t,
 			Name:   SYSSessionSubscribed,
-			Data: &SubscribeEvent{
+			Data: &SubEvent{
 				SessionId: sessionId,
 				Filter:    *filter,
 			},
@@ -162,7 +162,7 @@ func (app *App) unsubscribe() httprouter.Handle {
 			UserID: userID,
 			Topic:  t,
 			Name:   SYSSessionUnsubscribed,
-			Data: &SubscribeEvent{
+			Data: &SubEvent{
 				SessionId: sessionId,
 				Filter:    *filter,
 			},
