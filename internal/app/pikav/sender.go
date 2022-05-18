@@ -91,7 +91,7 @@ func (d *Sender) start() {
 }
 
 func (d *Sender) handle(event *client.Event) {
-	var data SubscribeEvent
+	var data SubEvent
 	if err := mapstructure.Decode(event.Data, &data); err != nil {
 		log.Println(err)
 		return
@@ -124,7 +124,7 @@ func (d *Sender) handleSys(event *client.Event) {
 }
 
 func (d *Sender) handleSysSessionSubscribed(event *client.Event) {
-	var data SubscribeEvent
+	var data SubEvent
 	if err := mapstructure.Decode(event.Data, &data); err != nil {
 		log.Println(err)
 		return
@@ -156,7 +156,7 @@ func (d *Sender) handleSysSessionSubscribed(event *client.Event) {
 }
 
 func (d *Sender) handleSysSessionUnsubscribed(event *client.Event) {
-	var data SubscribeEvent
+	var data SubEvent
 	if err := mapstructure.Decode(event.Data, &data); err != nil {
 		log.Println(err)
 		return
