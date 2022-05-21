@@ -1,8 +1,11 @@
 package pikav
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/timada-org/pikav/internal/pkg/core"
@@ -25,20 +28,34 @@ func New() *App {
 		log.Fatalln(err)
 	}
 
-	c, err := client.New(client.ClientOptions{
-		URL:   config.Broker.URL,
-		Topic: config.Broker.Topic,
-		Name:  config.ID,
-	})
+	var clientID string
+	var c *client.Client
 
-	if err != nil {
-		log.Fatalln(err)
+	for i := 0; i < 15; i++ {
+		clientID = fmt.Sprintf("%s-%d", config.ID, i)
+		c, err = client.New(client.ClientOptions{
+			URL:   config.Broker.URL,
+			Topic: config.Broker.Topic,
+			Name:  clientID,
+		})
+
+		if err == nil {
+			break
+		}
+
+		if !strings.Contains(err.Error(), "is already connected to topic") {
+			log.Fatalln(err)
+		}
+	}
+
+	if c == nil {
+		log.Fatalln(errors.New("all brokers are taken"))
 	}
 
 	server := sse.New()
 
 	sender := newSender(&SenderOptions{
-		ID:     config.ID,
+		ID:     clientID,
 		Topic:  config.Broker.Topic,
 		client: c.Client,
 		server: server,
