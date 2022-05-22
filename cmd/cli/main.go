@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/timada-org/pikav/internal/pkg/core"
 	"github.com/timada-org/pikav/pkg/client"
 	"github.com/timada-org/pikav/pkg/topic"
 )
@@ -12,11 +11,8 @@ func main() {
 		Use:   "pikav-cli",
 		Short: "Cli for pikav",
 		Run: func(cmd *cobra.Command, args []string) {
-			config, _ := core.NewConfig()
 			c, _ := client.New(client.ClientOptions{
-				URL:   config.Broker.URL,
-				Topic: config.Broker.Topic,
-				Name:  "pikav-cli",
+				URL: "http://127.0.0.1:6750/pub",
 			})
 
 			name, _ := topic.NewName("todos")
