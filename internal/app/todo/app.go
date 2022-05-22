@@ -44,9 +44,7 @@ func New() *App {
 	}
 
 	c, err := client.New(client.ClientOptions{
-		URL:   config.Broker.URL,
-		Topic: config.Broker.Topic,
-		Name:  "todo",
+		URL: "http://127.0.0.1:6750/pub",
 	})
 
 	if err != nil {
@@ -126,7 +124,7 @@ func (app *App) create() httprouter.Handle {
 		}
 
 		go func() {
-			n := rand.Intn(5)
+			n := rand.Intn(3)
 			time.Sleep(time.Duration(n) * time.Second)
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))
@@ -190,7 +188,7 @@ func (app *App) update() httprouter.Handle {
 		}
 
 		go func() {
-			n := rand.Intn(5)
+			n := rand.Intn(3)
 			time.Sleep(time.Duration(n) * time.Second)
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))
@@ -239,7 +237,7 @@ func (app *App) delete() httprouter.Handle {
 		}
 
 		go func() {
-			n := rand.Intn(5)
+			n := rand.Intn(3)
 			time.Sleep(time.Duration(n) * time.Second)
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))

@@ -1,6 +1,7 @@
 package pikav
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -10,16 +11,16 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/timada-org/pikav/internal/pkg/core"
 	"github.com/timada-org/pikav/internal/pkg/sse"
-	"github.com/timada-org/pikav/pkg/client"
 	"github.com/timada-org/pikav/pkg/topic"
 )
 
 type App struct {
-	server *sse.Server
-	sender *Sender
-	config *core.Config
-	auth   *core.Auth
-	client *client.Client
+	server        *sse.Server
+	sender        *Sender
+	config        *core.Config
+	auth          *core.Auth
+	client        *Client
+	publishClient *Client
 }
 
 func New() *App {
@@ -29,11 +30,11 @@ func New() *App {
 	}
 
 	var clientID string
-	var c *client.Client
+	var client *Client
 
 	for i := 0; i < 15; i++ {
 		clientID = fmt.Sprintf("%s-%d", config.ID, i)
-		c, err = client.New(client.ClientOptions{
+		client, err = newClient(ClientOptions{
 			URL:   config.Broker.URL,
 			Topic: config.Broker.Topic,
 			Name:  clientID,
@@ -48,8 +49,18 @@ func New() *App {
 		}
 	}
 
-	if c == nil {
+	if client == nil {
 		log.Fatalln(errors.New("all brokers are taken"))
+	}
+
+	publishClient, err := newClient(ClientOptions{
+		URL:   config.Broker.URL,
+		Topic: config.Broker.Topic,
+		Name:  fmt.Sprintf("%s-pub", clientID),
+	})
+
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	server := sse.New()
@@ -57,7 +68,7 @@ func New() *App {
 	sender := newSender(&SenderOptions{
 		ID:     clientID,
 		Topic:  config.Broker.Topic,
-		client: c.Client,
+		client: client.Client,
 		server: server,
 	})
 
@@ -67,11 +78,12 @@ func New() *App {
 	}
 
 	app := &App{
-		server: server,
-		sender: sender,
-		config: config,
-		auth:   auth,
-		client: c,
+		server,
+		sender,
+		config,
+		auth,
+		client,
+		publishClient,
 	}
 
 	return app
@@ -82,6 +94,7 @@ func (app *App) Listen() error {
 
 	router := httprouter.New()
 	router.GET("/sse", app.server.HandleFunc())
+	router.POST("/pub", app.publish())
 	router.PUT("/sub/*filter", app.subscribe())
 	router.PUT("/unsub/*filter", app.unsubscribe())
 
@@ -122,7 +135,7 @@ func (app *App) subscribe() httprouter.Handle {
 			return
 		}
 
-		err = app.client.Send(&client.Event{
+		err = app.client.Send(&ClientEvent{
 			UserID: userID,
 			Topic:  t,
 			Name:   SYSSessionSubscribed,
@@ -175,7 +188,7 @@ func (app *App) unsubscribe() httprouter.Handle {
 			return
 		}
 
-		err = app.client.Send(&client.Event{
+		err = app.client.Send(&ClientEvent{
 			UserID: userID,
 			Topic:  t,
 			Name:   SYSSessionUnsubscribed,
@@ -184,6 +197,48 @@ func (app *App) unsubscribe() httprouter.Handle {
 				Filter:    *filter,
 			},
 		})
+
+		w.Header().Add("Content-Type", "application/json")
+
+		if err != nil {
+			log.Println(err.Error())
+			http.Error(w, "{\"success\": false}", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+
+		if _, err := w.Write([]byte("{\"success\": true}")); err != nil {
+			log.Println(err.Error())
+			return
+		}
+	}
+}
+
+func (app *App) publish() httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		// TODO: enable when service account will be available
+		// _, err := app.auth.UserID(r)
+		// if err != nil {
+		// 	http.Error(w, "Bad request.", http.StatusBadRequest)
+		// 	return
+		// }
+
+		decoder := json.NewDecoder(r.Body)
+		var input ClientEvent
+		if err := decoder.Decode(&input); err != nil {
+			http.Error(w, "Bad request.", http.StatusBadRequest)
+			return
+		}
+
+		_, err := topic.NewName(input.Topic.Value)
+
+		if err != nil {
+			http.Error(w, "Bad request.", http.StatusBadRequest)
+			return
+		}
+
+		err = app.client.Send(&input)
 
 		w.Header().Add("Content-Type", "application/json")
 
