@@ -1,18 +1,33 @@
-FROM golang:1.18 as build-env
+FROM golang:1.18-alpine3.15 as build-env
 
-WORKDIR /go/src/app
+RUN apk --no-cache --update-cache --upgrade --latest add build-base git gcc bash
 
-COPY go_pkg_mod ~/go/pkg/mod
-COPY . .
+WORKDIR /go/src/github.com/timada-org/pikav
 
-RUN CGO_ENABLED=0 go build -o /go/bin/app ./cmd/pikav
+ADD go.mod go.mod
+ADD go.sum go.sum
 
-FROM gcr.io/distroless/static
+ENV GO111MODULE on
+ENV CGO_ENABLED 1
 
-ENV PIKAV_CONFIG_DIR=/etc/pikav/
+RUN go mod download
+
+ADD . .
+
+RUN --mount=type=cache,target=/root/.cache/go-build go build -o /usr/bin/pikav .
+
+FROM alpine:3.15
+
+RUN addgroup -S timada; \
+    adduser -S timada -G timada -D -u 10000 -h /home/timada -s /bin/nologin; \
+    chown -R timada:timada /home/timada
+
+
+COPY --from=build-env /usr/bin/pikav /usr/bin/pikav
 
 EXPOSE 6750
 
-COPY --from=build-env /go/bin/app /
-COPY --from=build-env /go/src/app/configs/config.yml $PIKAV_CONFIG_DIR
-CMD ["/app"]
+USER 10000
+
+ENTRYPOINT ["pikav"]
+CMD ["serve"]

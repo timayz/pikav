@@ -1,8 +1,7 @@
 package core
 
 import (
-	"fmt"
-	"os"
+	"strings"
 
 	"github.com/gookit/config/v2"
 	"github.com/gookit/config/v2/yaml"
@@ -20,7 +19,7 @@ type Config struct {
 	Broker  Broker `config:"broker"`
 }
 
-func NewConfig() (*Config, error) {
+func NewConfig(path string) (*Config, error) {
 	var appConfig Config
 
 	config.WithOptions(func(opt *config.Options) {
@@ -30,17 +29,11 @@ func NewConfig() (*Config, error) {
 
 	config.AddDriver(yaml.Driver)
 
-	baseDir := "configs/"
-
-	if p := os.Getenv("PIKAV_CONFIG_DIR"); p != "" {
-		baseDir = p
-	}
-
-	if err := config.LoadFiles(fmt.Sprintf("%sconfig.yml", baseDir)); err != nil {
+	if err := config.LoadFiles(path); err != nil {
 		return nil, err
 	}
 
-	if err := config.LoadExists(fmt.Sprintf("%sconfig.local.yml", baseDir)); err != nil {
+	if err := config.LoadExists(strings.Replace(path, ".yml", ".local.yml", 1)); err != nil {
 		return nil, err
 	}
 

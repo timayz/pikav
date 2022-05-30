@@ -1,4 +1,4 @@
-package todo
+package main
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/julienschmidt/httprouter"
-	"github.com/timada-org/pikav/internal/pkg/core"
+	"github.com/timada-org/pikav/internal/core"
 	"github.com/timada-org/pikav/pkg/client"
 	"github.com/timada-org/pikav/pkg/topic"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ type App struct {
 }
 
 func New() *App {
-	config, err := core.NewConfig()
+	config, err := core.NewConfig("configs/pikav.yml")
 	if err != nil {
 		log.Fatalln(err)
 	}

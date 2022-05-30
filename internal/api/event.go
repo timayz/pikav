@@ -1,4 +1,4 @@
-package pikav
+package api
 
 import "github.com/timada-org/pikav/pkg/topic"
 

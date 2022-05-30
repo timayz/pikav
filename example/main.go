@@ -2,12 +2,10 @@ package main
 
 import (
 	"log"
-
-	"github.com/timada-org/pikav/internal/app/todo"
 )
 
 func main() {
-	app := todo.New()
+	app := New()
 
 	log.Fatal(app.Listen())
 }

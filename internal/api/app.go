@@ -1,4 +1,4 @@
-package pikav
+package api
 
 import (
 	"encoding/json"
@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/timada-org/pikav/internal/pkg/core"
-	"github.com/timada-org/pikav/internal/pkg/sse"
+	"github.com/timada-org/pikav/internal/core"
+	"github.com/timada-org/pikav/internal/sse"
 	"github.com/timada-org/pikav/pkg/topic"
 )
 
@@ -23,14 +23,10 @@ type App struct {
 	publishClient *Client
 }
 
-func New() *App {
-	config, err := core.NewConfig()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
+func New(config *core.Config) *App {
 	var clientID string
 	var client *Client
+	var err error
 
 	for i := 0; i < 15; i++ {
 		clientID = fmt.Sprintf("%s-%d", config.ID, i)

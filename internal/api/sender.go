@@ -1,4 +1,4 @@
-package pikav
+package api
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/mitchellh/mapstructure"
-	"github.com/timada-org/pikav/internal/pkg/sse"
+	"github.com/timada-org/pikav/internal/sse"
 	"github.com/timada-org/pikav/pkg/client"
 	"github.com/timada-org/pikav/pkg/topic"
 )
