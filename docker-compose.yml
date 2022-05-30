@@ -1,25 +1,6 @@
 version: "3.9"
 
 services:
-  pulsar:
-    image: apachepulsar/pulsar:2.9.1
-    volumes:
-      - pulsar-data:/pulsar/data
-      - pulsar-conf:/pulsar/conf
-    ports:
-      - "6650:6650"
-    command: bin/pulsar standalone
-
-  pulsar-init:
-    image: apachepulsar/pulsar:2.9.1
-    volumes:
-      - ./.docker/pulsar/client.conf:/pulsar/conf/client.conf
-      - ./.docker/pulsar/init-data.sh:/init-data.sh
-    command: /init-data.sh
-    depends_on:
-      - pulsar
-    restart: on-failure
-
   cockroach:
     image: cockroachdb/cockroach:v21.2.6
     volumes:
@@ -101,6 +82,4 @@ services:
       - '4437:4437'
 
 volumes:
-  pulsar-data:
-  pulsar-conf:
   cockroach-data:
