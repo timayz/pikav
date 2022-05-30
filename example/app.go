@@ -24,7 +24,7 @@ type App struct {
 }
 
 func New() *App {
-	config, err := core.NewConfig()
+	config, err := core.NewConfig("configs/pikav.yml")
 	if err != nil {
 		log.Fatalln(err)
 	}
