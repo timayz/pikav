@@ -1,5 +1,8 @@
+.docker
 .github
+example
 Dockerfile
 .releaserc.yml
 docker-compose.yml
+docker-compose.standalone.yml
 Makefile

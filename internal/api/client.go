@@ -1,4 +1,4 @@
-package pikav
+package api
 
 import (
 	"context"
