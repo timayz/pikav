@@ -30,5 +30,5 @@ var (
 )
 
 func init() {
-	serveCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "/etc/config/pikav.yaml", "config file (default is /etc/config/pikav.yaml)")
+	serveCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "/etc/config/pikav.yml", "config file (default is /etc/config/pikav.yml)")
 }

@@ -7,6 +7,8 @@ services:
       - "6750:6750"
     depends_on:
       - oathkeeper
+    volumes:
+      - ./configs/pikav.yml:/etc/config/pikav.yml
     environment:
       - PIKAV_JWKS_URL=http://oathkeeper:4456/.well-known/jwks.json
       - PIKAV_BROKER_URL=pulsar://pulsar:6650
