@@ -1,14 +1,54 @@
 version: "3.9"
 
 services:
-  pikav:
+  pikav-eu-west-1a:
     image: timada0/pikav
     ports:
       - "6750:6750"
     depends_on:
       - oathkeeper
     volumes:
-      - ./configs/pikav.yml:/etc/config/pikav.yml
-    environment:
-      - PIKAV_JWKS_URL=http://oathkeeper:4456/.well-known/jwks.json
-      - PIKAV_BROKER_URL=pulsar://pulsar:6650
+      - ./.docker/pikav/eu-west-1a.yml:/etc/config/pikav.yml
+    networks:
+      default:
+        aliases:
+          - eu-west-1a.pikav.internal
+
+  pikav-eu-west-1b:
+    image: timada0/pikav
+    ports:
+      - "6751:6750"
+    depends_on:
+      - oathkeeper
+    volumes:
+      - ./.docker/pikav/eu-west-1b.yml:/etc/config/pikav.yml
+    networks:
+      default:
+        aliases:
+          - eu-west-1b.pikav.internal
+
+  pikav-eu-west-1c:
+    image: timada0/pikav
+    ports:
+      - "6752:6750"
+    depends_on:
+      - oathkeeper
+    volumes:
+      - ./.docker/pikav/eu-west-1c.yml:/etc/config/pikav.yml
+    networks:
+      default:
+        aliases:
+          - eu-west-1c.pikav.internal
+
+  pikav-us-west-1a:
+    image: timada0/pikav
+    ports:
+      - "6753:6750"
+    depends_on:
+      - oathkeeper
+    volumes:
+      - ./.docker/pikav/us-west-1a.yml:/etc/config/pikav.yml
+    networks:
+      default:
+        aliases:
+          - us-west-1a.pikav.internal

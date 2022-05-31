@@ -65,3 +65,7 @@ func (s *Server) Get(id string) (*Session, bool) {
 
 	return session, ok
 }
+
+func (s *Server) Sessions() map[string]*Session {
+	return s.sessions
+}
