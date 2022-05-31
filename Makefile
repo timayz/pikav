@@ -53,7 +53,7 @@ standalone: standalone.pull
 	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up -d
 
 standalone.pull:
-	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml pull pikav
+	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml pull pikav-eu-west-1a
 
 standalone.down:
 	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up -d
