@@ -57,3 +57,6 @@ standalone.pull:
 
 standalone.down:
 	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up -d
+
+standalone.restart:
+	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml restart

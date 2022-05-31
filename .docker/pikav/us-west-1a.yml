@@ -5,9 +5,9 @@ jwks_url: http://oathkeeper:4456/.well-known/jwks.json
 zone: us-west-1a
 
 nodes:
-  - url: http://eu-west-1b.pikav.internal
+  - url: http://eu-west-1b.pikav.internal:6750
     zone: eu-west-1a
-  - url: http://eu-west-1c.pikav.internal
+  - url: http://eu-west-1c.pikav.internal:6750
     zone: eu-west-1b
-  - url: http://eu-west-1a.pikav.internal
+  - url: http://eu-west-1a.pikav.internal:6750
     zone: eu-west-1c
