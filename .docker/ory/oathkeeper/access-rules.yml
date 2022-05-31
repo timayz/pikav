@@ -52,29 +52,13 @@
       config:
         to: http://127.0.0.1:4455/login
 
-- id: "pikav:anonymous"
+- id: "pikav-eu-west-1a:protected"
   upstream:
     preserve_host: true
     url: "http://host.docker.internal:6750"
-    strip_path: /pikav
+    strip_path: /pikav-eu-west-1a
   match:
-    url: "http://127.0.0.1:4455/pikav<{,/count}>"
-    methods:
-      - GET
-  authenticators:
-    - handler: anonymous
-  authorizer:
-    handler: allow
-  mutators:
-    - handler: noop
-
-- id: "pikav:protected"
-  upstream:
-    preserve_host: true
-    url: "http://host.docker.internal:6750"
-    strip_path: /pikav
-  match:
-    url: "http://127.0.0.1:4455/pikav/<**>"
+    url: "http://127.0.0.1:4455/pikav-eu-west-1a/<**>"
     methods:
       - GET
       - POST
@@ -92,13 +76,157 @@
       config:
         to: http://127.0.0.1:4455/login
 
-- id: "todo:protected"
+- id: "pikav-eu-west-1b:protected"
+  upstream:
+    preserve_host: true
+    url: "http://host.docker.internal:6751"
+    strip_path: /pikav-eu-west-1b
+  match:
+    url: "http://127.0.0.1:4455/pikav-eu-west-1b/<**>"
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+  authenticators:
+    - handler: cookie_session
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+  errors:
+    - handler: redirect
+      config:
+        to: http://127.0.0.1:4455/login
+
+- id: "pikav-eu-west-1c:protected"
+  upstream:
+    preserve_host: true
+    url: "http://host.docker.internal:6752"
+    strip_path: /pikav-eu-west-1c
+  match:
+    url: "http://127.0.0.1:4455/pikav-eu-west-1c/<**>"
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+  authenticators:
+    - handler: cookie_session
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+  errors:
+    - handler: redirect
+      config:
+        to: http://127.0.0.1:4455/login
+
+- id: "pikav-us-west-1a:protected"
+  upstream:
+    preserve_host: true
+    url: "http://host.docker.internal:6753"
+    strip_path: /pikav-us-west-1a
+  match:
+    url: "http://127.0.0.1:4455/pikav-us-west-1a/<**>"
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+  authenticators:
+    - handler: cookie_session
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+  errors:
+    - handler: redirect
+      config:
+        to: http://127.0.0.1:4455/login
+
+- id: "todo-eu-west-1a:protected"
   upstream:
     preserve_host: true
     url: "http://host.docker.internal:3001"
-    strip_path: /todo
+    strip_path: /todo-eu-west-1a
   match:
-    url: "http://127.0.0.1:4455/todo/<**>"
+    url: "http://127.0.0.1:4455/todo-eu-west-1a/<**>"
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+  authenticators:
+    - handler: cookie_session
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+  errors:
+    - handler: redirect
+      config:
+        to: http://127.0.0.1:4455/login
+
+- id: "todo-eu-west-1b:protected"
+  upstream:
+    preserve_host: true
+    url: "http://host.docker.internal:3002"
+    strip_path: /todo-eu-west-1b
+  match:
+    url: "http://127.0.0.1:4455/todo-eu-west-1b/<**>"
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+  authenticators:
+    - handler: cookie_session
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+  errors:
+    - handler: redirect
+      config:
+        to: http://127.0.0.1:4455/login
+
+- id: "todo-eu-west-1c:protected"
+  upstream:
+    preserve_host: true
+    url: "http://host.docker.internal:3003"
+    strip_path: /todo-eu-west-1c
+  match:
+    url: "http://127.0.0.1:4455/todo-eu-west-1c/<**>"
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+  authenticators:
+    - handler: cookie_session
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: id_token
+  errors:
+    - handler: redirect
+      config:
+        to: http://127.0.0.1:4455/login
+
+- id: "todo-us-west-1a:protected"
+  upstream:
+    preserve_host: true
+    url: "http://host.docker.internal:3004"
+    strip_path: /todo-us-west-1a
+  match:
+    url: "http://127.0.0.1:4455/todo-us-west-1a/<**>"
     methods:
       - GET
       - POST

@@ -6,11 +6,24 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/timada-org/pikav/internal/core"
 )
+
+var hopHeaders = []string{
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Authenticate",
+	"Proxy-Authorization",
+	"Te", // canonicalized version of "TE"
+	"Trailers",
+	"Transfer-Encoding",
+	"Upgrade",
+}
 
 type ClientOptions struct {
 	Zone   string
@@ -89,9 +102,15 @@ func (c *Client) Forward(req *http.Request, b io.Reader) error {
 		return err
 	}
 
+	newReq.Header = req.Header.Clone()
+
+	delHopHeaders(newReq.Header)
+
+	if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
+		appendHostToXForwardHeader(newReq.Header, clientIP)
+	}
+
 	newReq.Header.Set("X-Pikav-Forwarded-By", c.options.Zone)
-	newReq.Header.Set("Authorization", req.Header.Get("Authorization"))
-	newReq.Header.Set("X-Pikav-Session-ID", req.Header.Get("X-Pikav-Session-ID"))
 
 	resp, err := c.client.Do(newReq)
 
@@ -111,4 +130,20 @@ func (c *Client) Forward(req *http.Request, b io.Reader) error {
 	}
 
 	return fmt.Errorf("%s %s", resp.Status, body)
+}
+
+func delHopHeaders(header http.Header) {
+	for _, h := range hopHeaders {
+		header.Del(h)
+	}
+}
+
+func appendHostToXForwardHeader(header http.Header, host string) {
+	// If we aren't the first proxy retain prior
+	// X-Forwarded-For information as a comma+space
+	// separated list and fold multiple headers into one.
+	if prior, ok := header["X-Forwarded-For"]; ok {
+		host = strings.Join(prior, ", ") + ", " + host
+	}
+	header.Set("X-Forwarded-For", host)
 }
