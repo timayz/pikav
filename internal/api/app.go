@@ -1,13 +1,16 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/timada-org/pikav/internal/core"
 	"github.com/timada-org/pikav/internal/sse"
+	"github.com/timada-org/pikav/pkg/client"
 	"github.com/timada-org/pikav/pkg/topic"
 )
 
@@ -16,6 +19,7 @@ type App struct {
 	bus    *core.EventBus
 	config *core.Config
 	auth   *Auth
+	nodes  []*client.Client
 }
 
 func New(config *core.Config) *App {
@@ -32,11 +36,17 @@ func New(config *core.Config) *App {
 		log.Fatalln(err)
 	}
 
+	nodes := []*client.Client{}
+	for _, node := range config.Nodes {
+		nodes = append(nodes, client.New(client.ClientOptions{Zone: node.Zone, URL: node.URL, Shared: node.Shared}))
+	}
+
 	app := &App{
 		server,
 		bus,
 		config,
 		auth,
+		nodes,
 	}
 
 	return app
@@ -80,6 +90,7 @@ func (app *App) subscribe() httprouter.Handle {
 		}
 
 		app.bus.Subscribe(userID, sessionId, filter)
+		app.forward(r, nil)
 
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -112,12 +123,8 @@ func (app *App) unsubscribe() httprouter.Handle {
 			return
 		}
 
-		if err != nil {
-			http.Error(w, "Bad request.", http.StatusBadRequest)
-			return
-		}
-
 		app.bus.Unsubscribe(userID, sessionId, filter)
+		app.forward(r, nil)
 
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -154,6 +161,15 @@ func (app *App) publish() httprouter.Handle {
 
 		app.bus.Send(&input)
 
+		payload, err := json.Marshal(&input)
+		if err != nil {
+			http.Error(w, "Internal server error.", http.StatusInternalServerError)
+			log.Println(err.Error())
+			return
+		}
+
+		app.forward(r, bytes.NewBuffer(payload))
+
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 
@@ -161,5 +177,15 @@ func (app *App) publish() httprouter.Handle {
 			log.Println(err.Error())
 			return
 		}
+	}
+}
+
+func (app *App) forward(r *http.Request, b io.Reader) {
+	for _, node := range app.nodes {
+		go func(client *client.Client) {
+			if err := client.Forward(r, b); err != nil {
+				log.Println(err.Error())
+			}
+		}(node)
 	}
 }

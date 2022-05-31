@@ -92,6 +92,7 @@ func (bus *EventBus) Subscribe(userID string, sessionID string, filter *topic.To
 	}
 
 	bus.subscriptions[userID][sessionID].add(filter)
+
 }
 
 func (bus *EventBus) Unsubscribe(userID string, sessionID string, filter *topic.TopicFilter) {

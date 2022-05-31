@@ -41,13 +41,9 @@ func New() *App {
 		log.Fatalln(err)
 	}
 
-	c, err := client.New(client.ClientOptions{
-		URL: fmt.Sprintf("http://127.0.0.1:%s/pub", os.Getenv("PIKAV_PORT")),
+	c := client.New(client.ClientOptions{
+		URL: fmt.Sprintf("http://127.0.0.1:%s", os.Getenv("PIKAV_PORT")),
 	})
-
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	app := &App{
 		auth,

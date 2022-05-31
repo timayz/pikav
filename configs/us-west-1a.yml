@@ -2,7 +2,12 @@ addr: ":6753"
 
 jwks_url: http://127.0.0.1:4456/.well-known/jwks.json
 
+zone: us-west-1a
+
 nodes:
   - url: http://127.0.0.1:6750
+    zone: eu-west-1a
   - url: http://127.0.0.1:6751
+    zone: eu-west-1b
   - url: http://127.0.0.1:6752
+    zone: eu-west-1c

@@ -9,10 +9,12 @@ import (
 
 type Node struct {
 	URL    string `config:"url"`
-	Shared string `config:"shared"`
+	Zone   string `config:"zone"`
+	Shared bool   `config:"shared"`
 }
 
 type Config struct {
+	Zone    string `config:"zone"`
 	Addr    string `config:"addr"`
 	JwksURL string `config:"jwks_url"`
 	Nodes   []Node `config:"nodes"`
