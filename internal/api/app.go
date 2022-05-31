@@ -168,7 +168,7 @@ func (app *App) publish() httprouter.Handle {
 			return
 		}
 
-		app.forward(r, bytes.NewBuffer(payload))
+		app.forward(r, payload)
 
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -180,10 +180,17 @@ func (app *App) publish() httprouter.Handle {
 	}
 }
 
-func (app *App) forward(r *http.Request, b io.Reader) {
+func (app *App) forward(r *http.Request, body []byte) {
 	for _, node := range app.nodes {
+
 		go func(client *client.Client) {
-			if err := client.Forward(r, b); err != nil {
+			var rb io.Reader
+
+			if body != nil {
+				rb = bytes.NewBuffer(body)
+			}
+
+			if err := client.Forward(r, rb); err != nil {
 				log.Println(err.Error())
 			}
 		}(node)
