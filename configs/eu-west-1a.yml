@@ -1,0 +1,10 @@
+addr: ":6750"
+
+jwks_url: http://127.0.0.1:4456/.well-known/jwks.json
+
+nodes:
+  - url: http://127.0.0.1:6751
+    shared: true
+  - url: http://127.0.0.1:6752
+    shared: true
+  - url: http://127.0.0.1:6753

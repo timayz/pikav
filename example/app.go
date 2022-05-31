@@ -6,11 +6,13 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/glebarez/sqlite"
 	"github.com/julienschmidt/httprouter"
+	"github.com/timada-org/pikav/internal/api"
 	"github.com/timada-org/pikav/internal/core"
 	"github.com/timada-org/pikav/pkg/client"
 	"github.com/timada-org/pikav/pkg/topic"
@@ -18,18 +20,14 @@ import (
 )
 
 type App struct {
-	auth *core.Auth
+	auth *api.Auth
 	db   *gorm.DB
 	c    *client.Client
 }
 
 func New() *App {
-	config, err := core.NewConfig("configs/pikav.yml")
-	if err != nil {
-		log.Fatalln(err)
-	}
 
-	auth, err := core.NewAuth(config.JwksURL)
+	auth, err := api.NewAuth("http://127.0.0.1:4456/.well-known/jwks.json")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -44,7 +42,7 @@ func New() *App {
 	}
 
 	c, err := client.New(client.ClientOptions{
-		URL: "http://127.0.0.1:6750/pub",
+		URL: fmt.Sprintf("http://127.0.0.1:%s/pub", os.Getenv("PIKAV_PORT")),
 	})
 
 	if err != nil {
@@ -67,9 +65,9 @@ func (app *App) Listen() error {
 	router.PUT("/todos/:id", app.update())
 	router.DELETE("/todos/:id", app.delete())
 
-	log.Printf("Listening on %s", ":3001")
+	log.Printf("Listening on %s", os.Getenv("PORT"))
 
-	return http.ListenAndServe(":3001", router)
+	return http.ListenAndServe(os.Getenv("PORT"), router)
 }
 
 func (app *App) list() httprouter.Handle {
@@ -129,7 +127,7 @@ func (app *App) create() httprouter.Handle {
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))
 
-			_ = app.c.Send(&client.Event{
+			_ = app.c.Send(&core.Event{
 				UserID: userID,
 				Topic:  topic,
 				Name:   "Created",
@@ -193,7 +191,7 @@ func (app *App) update() httprouter.Handle {
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))
 
-			_ = app.c.Send(&client.Event{
+			_ = app.c.Send(&core.Event{
 				UserID: userID,
 				Topic:  topic,
 				Name:   "Updated",
@@ -242,7 +240,7 @@ func (app *App) delete() httprouter.Handle {
 
 			topic, _ := topic.NewName(fmt.Sprintf("todos/%d", todo.ID))
 
-			_ = app.c.Send(&client.Event{
+			_ = app.c.Send(&core.Event{
 				UserID: userID,
 				Topic:  topic,
 				Name:   "Deleted",

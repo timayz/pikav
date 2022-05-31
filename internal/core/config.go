@@ -7,16 +7,15 @@ import (
 	"github.com/gookit/config/v2/yaml"
 )
 
-type Broker struct {
-	URL   string `config:"url"`
-	Topic string `config:"topic"`
+type Node struct {
+	URL    string `config:"url"`
+	Shared string `config:"shared"`
 }
 
 type Config struct {
-	ID      string `config:"id"`
 	Addr    string `config:"addr"`
 	JwksURL string `config:"jwks_url"`
-	Broker  Broker `config:"broker"`
+	Nodes   []Node `config:"nodes"`
 }
 
 func NewConfig(path string) (*Config, error) {

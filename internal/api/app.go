@@ -2,11 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/timada-org/pikav/internal/core"
@@ -15,79 +12,37 @@ import (
 )
 
 type App struct {
-	server        *sse.Server
-	sender        *Sender
-	config        *core.Config
-	auth          *core.Auth
-	client        *Client
-	publishClient *Client
+	server *sse.Server
+	bus    *core.EventBus
+	config *core.Config
+	auth   *Auth
 }
 
 func New(config *core.Config) *App {
-	var clientID string
-	var client *Client
 	var err error
-
-	for i := 0; i < 15; i++ {
-		clientID = fmt.Sprintf("%s-%d", config.ID, i)
-		client, err = newClient(ClientOptions{
-			URL:   config.Broker.URL,
-			Topic: config.Broker.Topic,
-			Name:  clientID,
-		})
-
-		if err == nil {
-			break
-		}
-
-		if !strings.Contains(err.Error(), "is already connected to topic") {
-			log.Fatalln(err)
-		}
-	}
-
-	if client == nil {
-		log.Fatalln(errors.New("all brokers are taken"))
-	}
-
-	publishClient, err := newClient(ClientOptions{
-		URL:   config.Broker.URL,
-		Topic: config.Broker.Topic,
-		Name:  fmt.Sprintf("%s-pub", clientID),
-	})
-
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	server := sse.New()
 
-	sender := newSender(&SenderOptions{
-		ID:     clientID,
-		Topic:  config.Broker.Topic,
-		client: client.Client,
-		server: server,
+	bus := core.NewEventBus(&core.EventBusOptions{
+		Server: server,
 	})
 
-	auth, err := core.NewAuth(config.JwksURL)
+	auth, err := NewAuth(config.JwksURL)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	app := &App{
 		server,
-		sender,
+		bus,
 		config,
 		auth,
-		client,
-		publishClient,
 	}
 
 	return app
 }
 
 func (app *App) Listen() error {
-	app.sender.start()
-
 	router := httprouter.New()
 	router.GET("/sse", app.server.HandleFunc())
 	router.POST("/pub", app.publish())
@@ -97,11 +52,6 @@ func (app *App) Listen() error {
 	log.Printf("Listening on %s", app.config.Addr)
 
 	return http.ListenAndServe(app.config.Addr, router)
-}
-
-func (app *App) Close() {
-	app.client.Close()
-	app.sender.Close()
 }
 
 func (app *App) subscribe() httprouter.Handle {
@@ -124,30 +74,15 @@ func (app *App) subscribe() httprouter.Handle {
 			return
 		}
 
-		t, err := topic.NewName(sse.SYSSessionTopic)
-
 		if err != nil {
 			http.Error(w, "Bad request.", http.StatusBadRequest)
 			return
 		}
 
-		err = app.client.Send(&ClientEvent{
-			UserID: userID,
-			Topic:  t,
-			Name:   SYSSessionSubscribed,
-			Data: &SubEvent{
-				SessionId: sessionId,
-				Filter:    *filter,
-			},
-		})
+		app.bus.Subscribe(userID, sessionId, filter)
 
 		w.Header().Add("Content-Type", "application/json")
-
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, "{\"success\": false}", http.StatusInternalServerError)
-			return
-		}
+		w.WriteHeader(http.StatusOK)
 
 		if _, err := w.Write([]byte("{\"success\": true}")); err != nil {
 			log.Println(err.Error())
@@ -177,31 +112,14 @@ func (app *App) unsubscribe() httprouter.Handle {
 			return
 		}
 
-		t, err := topic.NewName(sse.SYSSessionTopic)
-
 		if err != nil {
 			http.Error(w, "Bad request.", http.StatusBadRequest)
 			return
 		}
 
-		err = app.client.Send(&ClientEvent{
-			UserID: userID,
-			Topic:  t,
-			Name:   SYSSessionUnsubscribed,
-			Data: &SubEvent{
-				SessionId: sessionId,
-				Filter:    *filter,
-			},
-		})
+		app.bus.Unsubscribe(userID, sessionId, filter)
 
 		w.Header().Add("Content-Type", "application/json")
-
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, "{\"success\": false}", http.StatusInternalServerError)
-			return
-		}
-
 		w.WriteHeader(http.StatusOK)
 
 		if _, err := w.Write([]byte("{\"success\": true}")); err != nil {
@@ -221,7 +139,7 @@ func (app *App) publish() httprouter.Handle {
 		// }
 
 		decoder := json.NewDecoder(r.Body)
-		var input ClientEvent
+		var input core.Event
 		if err := decoder.Decode(&input); err != nil {
 			http.Error(w, "Bad request.", http.StatusBadRequest)
 			return
@@ -234,16 +152,9 @@ func (app *App) publish() httprouter.Handle {
 			return
 		}
 
-		err = app.client.Send(&input)
+		app.bus.Send(&input)
 
 		w.Header().Add("Content-Type", "application/json")
-
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, "{\"success\": false}", http.StatusInternalServerError)
-			return
-		}
-
 		w.WriteHeader(http.StatusOK)
 
 		if _, err := w.Write([]byte("{\"success\": true}")); err != nil {

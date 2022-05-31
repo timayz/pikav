@@ -22,7 +22,6 @@ var (
 			}
 
 			app := api.New(config)
-			defer app.Close()
 
 			log.Fatal(app.Listen())
 		},

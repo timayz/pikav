@@ -8,16 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/timada-org/pikav/pkg/topic"
+	"github.com/timada-org/pikav/internal/core"
 )
-
-type Event struct {
-	UserID   string           `json:"user_id"`
-	Topic    *topic.TopicName `json:"topic"`
-	Name     string           `json:"name"`
-	Data     any              `json:"data"`
-	Metadata any              `json:"metadata"`
-}
 
 type ClientOptions struct {
 	URL    string
@@ -37,7 +29,7 @@ func New(options ClientOptions) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Send(event *Event) error {
+func (c *Client) Send(event *core.Event) error {
 	payload, err := json.Marshal(&event)
 	if err != nil {
 		return err
