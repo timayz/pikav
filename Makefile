@@ -3,60 +3,45 @@ dev:
 
 _dev: _serve _demo
 
-serve: 
+serve:
 	$(MAKE) _serve -j4
 
 _serve: serve.eu-west-1a serve.eu-west-1b serve.eu-west-1c serve.us-west-1a
 
 serve.eu-west-1a:
-	go run . serve -c configs/eu-west-1a.yml
+	cargo run --bin pikav-cli serve -c config/eu-west-1a
 
 serve.eu-west-1b:
-	go run . serve -c configs/eu-west-1b.yml
+	cargo run --bin pikav-cli serve -c config/eu-west-1b
 
 serve.eu-west-1c:
-	go run . serve -c configs/eu-west-1c.yml
+	cargo run --bin pikav-cli serve -c config/eu-west-1c
 
 serve.us-west-1a:
-	go run . serve -c configs/us-west-1a.yml
+	cargo run --bin pikav-cli serve -c config/us-west-1a
 
-demo: 
+demo:
 	$(MAKE) _demo -j4
 
 _demo: demo.eu-west-1a demo.eu-west-1b demo.eu-west-1c demo.us-west-1a
 
 demo.eu-west-1a:
-	PORT=:3001 PIKAV_PORT=6750 go run ./example
+	PORT=3001 PIKAV_PORT=6750 cargo run --bin example
 
 demo.eu-west-1b:
-	PORT=:3002 PIKAV_PORT=6751 go run ./example
+	PORT=3002 PIKAV_PORT=6751 cargo run --bin example
 
 demo.eu-west-1c:
-	PORT=:3003 PIKAV_PORT=6752 go run ./example
+	PORT=3003 PIKAV_PORT=6752 cargo run --bin example
 
 demo.us-west-1a:
-	PORT=:3004 PIKAV_PORT=6753 go run ./example
-
-lint:
-	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.45.2 golangci-lint run -v
+	PORT=3004 PIKAV_PORT=6753 cargo run --bin example
 
 up:
-	docker-compose up -d --remove-orphan
+	docker-compose up -d
 
 stop:
 	docker-compose stop
 
 down:
 	docker-compose down -v --remove-orphan
-
-standalone: standalone.pull
-	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up -d
-
-standalone.pull:
-	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml pull pikav-eu-west-1a
-
-standalone.down:
-	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up -d
-
-standalone.restart:
-	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml restart

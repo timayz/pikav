@@ -4,9 +4,9 @@ on:
     - cron: 0 9 * * 1
   pull_request:
     paths:
-      - "**/go.mod"
-      - "**/go.sum"
+      - "**/Cargo.toml"
+      - "**/Cargo.lock"
 
 jobs:
-  go:
-    uses: timada-org/.github/.github/workflows/go-audit.yml@v2.2.2
+  rust:
+    uses: timada-org/.github/.github/workflows/rust-audit.yml@v2.2.2

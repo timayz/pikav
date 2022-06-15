@@ -1,21 +1,17 @@
 version: "3.9"
 
 services:
-  cockroach:
-    image: cockroachdb/cockroach:v21.2.6
-    volumes:
-      - cockroach-data:/cockroach/cockroach-data
-    ports:
-      - "26257:26257"
-    command: start-single-node --insecure
-
   kratos-migrate:
     image: oryd/kratos:v0.9.0-alpha.3
     environment:
-      - DSN=cockroach://root@cockroach:26257/defaultdb?sslmode=disable&max_conns=20&max_idle_conns=4
+      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true&mode=rwc
     volumes:
+      - type: volume
+        source: kratos-sqlite
+        target: /var/lib/sqlite
+        read_only: false
       - type: bind
-        source: ./.docker/ory/kratos/email-password
+        source: ./.docker/kratos/email-password
         target: /etc/config/kratos
     command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
     restart: on-failure
@@ -38,12 +34,16 @@ services:
       - '4434:4434' # admin
     restart: unless-stopped
     environment:
-      - DSN=cockroach://root@cockroach:26257/defaultdb?sslmode=disable&max_conns=20&max_idle_conns=4
+      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true
       - LOG_LEVEL=trace
     command: serve -c /etc/config/kratos/kratos.yml --dev --watch-courier
     volumes:
+      - type: volume
+        source: kratos-sqlite
+        target: /var/lib/sqlite
+        read_only: false
       - type: bind
-        source: ./.docker/ory/kratos/email-password
+        source: ./.docker/kratos/email-password
         target: /etc/config/kratos
 
   oathkeeper:
@@ -59,7 +59,7 @@ services:
       - LOG_LEVEL=debug
     restart: on-failure
     volumes:
-      - ./.docker/ory/oathkeeper:/etc/config/oathkeeper
+      - ./.docker/oathkeeper:/etc/config/oathkeeper
     extra_hosts:
       - "host.docker.internal:host-gateway"
   
@@ -72,8 +72,16 @@ services:
     environment:
       - LOG_LEVEL=debug
       - PORT=4466
-      - DSN=cockroach://root@cockroach:26257/defaultdb?sslmode=disable&max_conns=20&max_idle_conns=4
+      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true
     restart: on-failure
+    volumes:
+      - type: volume
+        source: kratos-sqlite
+        target: /var/lib/sqlite
+        read_only: false
+      - type: bind
+        source: .docker/keto/keto.yml
+        target: /home/ory/keto.yml
 
   mailslurper:
     image: oryd/mailslurper:latest-smtps
@@ -82,4 +90,4 @@ services:
       - '4437:4437'
 
 volumes:
-  cockroach-data:
+  kratos-sqlite:
