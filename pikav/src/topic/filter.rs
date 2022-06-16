@@ -23,7 +23,7 @@ fn is_invalid_topic_filter(topic: &str) -> bool {
 /// http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718106
 ///
 /// ```rust
-/// use mqtt::{TopicFilter, TopicNameRef};
+/// use pikav::topic::{TopicFilter, TopicNameRef};
 ///
 /// let topic_filter = TopicFilter::new("sport/+/player1").unwrap();
 /// let matcher = topic_filter.get_matcher();
