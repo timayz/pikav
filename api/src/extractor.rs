@@ -16,7 +16,7 @@ use josekit::{
     jwt::{self, JwtPayloadValidator},
 };
 
-use crate::error::Error;
+use crate::error::ApiError;
 use crate::jwks::JwksClient;
 
 pub struct User(pub String, pub String);
@@ -46,13 +46,13 @@ impl FromRequest for User {
             };
 
             let jwk = client.get(&token).await?;
-            let verifier = RS256.verifier_from_jwk(&jwk).map_err(Error::from)?;
-            let (payload, _) = jwt::decode_with_verifier(&token, &verifier).map_err(Error::from)?;
+            let verifier = RS256.verifier_from_jwk(&jwk).map_err(ApiError::from)?;
+            let (payload, _) = jwt::decode_with_verifier(&token, &verifier).map_err(ApiError::from)?;
 
             let mut validator = JwtPayloadValidator::new();
             validator.set_base_time(SystemTime::now());
 
-            if !validator.validate(&payload).is_ok() {
+            if validator.validate(&payload).is_err() {
                 return Err(ErrorUnauthorized("unauthorized"));
             }
 

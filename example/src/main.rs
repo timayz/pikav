@@ -1,55 +1,44 @@
-#[macro_use]
-extern crate rbatis;
-
 use actix_web::{
     delete, get, post, put, rt::time::sleep, web, App, HttpResponse, HttpServer, Responder,
 };
 use pikav_api::extractor::User;
 use pikav_api::jwks::JwksClient;
 use rand::Rng;
-use rbatis::{crud::CRUD, rbatis::Rbatis};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::sync::Arc;
+use sqlx::sqlite::SqlitePool;
 use std::time::Duration;
 
-mod sqlite;
-
-#[crud_table(table_name:todos)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, sqlx::FromRow)]
 pub struct Todo {
-    pub id: Option<u64>,
+    pub id: i64,
     pub user_id: String,
-    pub text: String,
-    pub done: u8,
-}
-
-#[derive(Clone, Debug, Serialize)]
-pub struct ReadTodo {
-    pub id: Option<u64>,
     pub text: String,
     pub done: bool,
 }
 
-impl From<Todo> for ReadTodo {
-    fn from(todo: Todo) -> Self {
-        Self {
-            id: todo.id,
-            text: todo.text,
-            done: todo.done == 1,
-        }
-    }
+#[derive(Clone, Debug, Serialize, sqlx::FromRow)]
+pub struct ReadTodo {
+    pub id: i64,
+    pub text: String,
+    pub done: bool,
 }
 
 #[get("/todos")]
-async fn list(rb: web::Data<Arc<Rbatis>>, user: User) -> impl Responder {
-    let v: Vec<ReadTodo> = rb
-        .fetch_list_by_column::<Todo, _>("user_id", &[user.0])
-        .await
-        .unwrap_or_default()
-        .into_iter()
-        .map(|t| t.into())
-        .collect::<_>();
+async fn list(pool: web::Data<SqlitePool>, user: User) -> impl Responder {
+    let mut conn = pool.acquire().await.unwrap();
+
+    let v = sqlx::query_as::<_, ReadTodo>(
+        r#"
+SELECT id, text, done
+FROM todos
+WHERE user_id = ?1
+        "#,
+    )
+    .bind(user.0)
+    .fetch_all(&mut conn)
+    .await
+    .unwrap();
 
     HttpResponse::Ok().json(v)
 }
@@ -61,19 +50,20 @@ struct CreateInput {
 
 #[post("/todos")]
 async fn create(
-    rb: web::Data<Arc<Rbatis>>,
+    pool: web::Data<SqlitePool>,
     client: web::Data<pikav_client::Client>,
     user: User,
     input: web::Json<CreateInput>,
 ) -> impl Responder {
-    let todo = Todo {
-        id: None,
-        text: input.text.to_owned(),
-        done: 0,
-        user_id: user.0.to_owned(),
-    };
+    let mut conn = pool.acquire().await.unwrap();
 
-    let res = rb.save(&todo, &[]).await.unwrap();
+    let id = sqlx::query("INSERT INTO todos ( text, user_id ) VALUES ( ?1, ?2 )")
+        .bind(input.text.to_owned())
+        .bind(user.0.to_owned())
+        .execute(&mut conn)
+        .await
+        .unwrap()
+        .last_insert_rowid();
 
     actix_web::rt::spawn(async move {
         let mut rng = rand::thread_rng();
@@ -82,9 +72,13 @@ async fn create(
 
         client.publish(vec![pikav_client::Event::new(
             user.0,
-            format!("todos/{}", res.last_insert_id.unwrap()),
+            format!("todos/{}", id),
             "Created",
-            todo,
+            ReadTodo {
+                done: false,
+                id,
+                text: input.text.to_owned(),
+            },
         )
         .unwrap()]);
     });
@@ -100,27 +94,26 @@ struct UpdateInput {
 
 #[put("/todos/{id}")]
 async fn update(
-    id: web::Path<String>,
-    rb: web::Data<Arc<Rbatis>>,
+    id: web::Path<i64>,
+    pool: web::Data<SqlitePool>,
     client: web::Data<pikav_client::Client>,
     user: User,
     input: web::Json<UpdateInput>,
 ) -> impl Responder {
-    let result: Option<Todo> = rb.fetch_by_column("id", id.to_owned()).await.unwrap();
+    let mut conn = pool.acquire().await.unwrap();
 
-    let mut todo = match result {
-        Some(todo) => todo,
-        None => return HttpResponse::NotFound().json(json! ({ "success": false })),
-    };
+    let rows_affected = sqlx::query("UPDATE todos SET done = ?2, text = ?3 WHERE id = ?1")
+        .bind(id.to_owned())
+        .bind(input.done)
+        .bind(input.text.to_owned())
+        .execute(&mut conn)
+        .await
+        .unwrap()
+        .rows_affected();
 
-    if todo.user_id != user.0 {
-        return HttpResponse::Forbidden().json(json! ({ "success": false }));
+    if rows_affected == 0 {
+        return HttpResponse::NotFound().json(json! ({ "success": false }));
     }
-
-    todo.text = input.text.to_owned();
-    todo.done = if input.done { 1 } else { 0 };
-
-    rb.update_by_column("id", &todo).await.ok();
 
     actix_web::rt::spawn(async move {
         let mut rng = rand::thread_rng();
@@ -131,7 +124,11 @@ async fn update(
             user.0,
             format!("todos/{}", id),
             "Updated",
-            todo,
+            ReadTodo {
+                id: id.to_owned(),
+                text: input.text.to_owned(),
+                done: input.done,
+            },
         )
         .unwrap()]);
     });
@@ -141,23 +138,23 @@ async fn update(
 
 #[delete("/todos/{id}")]
 async fn delete(
-    id: web::Path<String>,
-    rb: web::Data<Arc<Rbatis>>,
+    id: web::Path<i64>,
+    pool: web::Data<SqlitePool>,
     client: web::Data<pikav_client::Client>,
     user: User,
 ) -> impl Responder {
-    let result: Option<Todo> = rb.fetch_by_column("id", id.to_owned()).await.unwrap();
+    let mut conn = pool.acquire().await.unwrap();
 
-    let todo = match result {
-        Some(todo) => todo,
-        None => return HttpResponse::NotFound().json(json! ({ "success": false })),
-    };
+    let rows_affected = sqlx::query("DELETE todos WHERE id = ?1")
+        .bind(id.to_owned())
+        .execute(&mut conn)
+        .await
+        .unwrap()
+        .rows_affected();
 
-    if todo.user_id != user.0 {
-        return HttpResponse::Forbidden().json(json! ({ "success": false }));
+    if rows_affected == 0 {
+        return HttpResponse::NotFound().json(json! ({ "success": false }));
     }
-
-    rb.remove_by_column::<Todo, _>("id", todo.id).await.ok();
 
     actix_web::rt::spawn(async move {
         let mut rng = rand::thread_rng();
@@ -180,17 +177,20 @@ async fn delete(
 
 #[actix_web::main] // or #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let rb = sqlite::init_sqlite_path("").await;
-    let rb = Arc::new(rb);
     let jwks_client = JwksClient::new("http://127.0.0.1:4456/.well-known/jwks.json");
     let pikva_client = pikav_client::Client::new(pikav_client::ClientOptions {
         url: format!("http://127.0.0.1:{}", std::env::var("PIKAV_PORT").unwrap()),
         shared: None,
     });
 
+    let pool =
+        SqlitePool::connect("sqlite://target/todos.db")
+            .await
+            .unwrap();
+
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(rb.to_owned()))
+            .app_data(web::Data::new(pool.to_owned()))
             .app_data(web::Data::new(jwks_client.to_owned()))
             .app_data(web::Data::new(pikva_client.to_owned()))
             .service(list)

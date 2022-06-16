@@ -26,6 +26,7 @@ demo:
 _demo: demo.eu-west-1a demo.eu-west-1b demo.eu-west-1c demo.us-west-1a
 
 demo.eu-west-1a:
+	cd example
 	PORT=3001 PIKAV_PORT=6750 cargo run --bin example
 
 demo.eu-west-1b:
@@ -45,3 +46,6 @@ stop:
 
 down:
 	docker-compose down -v --remove-orphan
+
+clippy:
+	cargo clippy --all-features -- -D warnings

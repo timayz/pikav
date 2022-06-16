@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::error::Error;
+use crate::error::ApiError;
 use actix_web::http::StatusCode;
 use josekit::{
     jwk::{Jwk, JwkSet},
@@ -22,11 +22,11 @@ impl JwksClient {
         }
     }
 
-    pub async fn get(&self, input: &str) -> Result<Jwk, Error> {
+    pub async fn get(&self, input: &str) -> Result<Jwk, ApiError> {
         let header = match jwt::decode_header(input) {
             Ok(header) => header,
             _ => {
-                return Err(Error::InternalServerError(
+                return Err(ApiError::InternalServerError(
                     "Failed to decode jwt header".to_owned(),
                 ))
             }
@@ -35,7 +35,7 @@ impl JwksClient {
         let key_id = match header.claim("kid").and_then(|key_id| key_id.as_str()) {
             Some(key_id) => key_id,
             _ => {
-                return Err(Error::InternalServerError(
+                return Err(ApiError::InternalServerError(
                     "Key id is missing from jwt header".to_owned(),
                 ))
             }
@@ -44,7 +44,7 @@ impl JwksClient {
         let alg = match header.claim("alg").and_then(|key_id| key_id.as_str()) {
             Some(alg) => alg,
             _ => {
-                return Err(Error::InternalServerError(
+                return Err(ApiError::InternalServerError(
                     "alg is missing from jwt header".to_owned(),
                 ))
             }
@@ -75,10 +75,10 @@ impl JwksClient {
             return Ok(jwk.clone());
         }
 
-        Err(Error::InternalServerError("Jwk not found".to_owned()))
+        Err(ApiError::InternalServerError("Jwk not found".to_owned()))
     }
 
-    async fn fetch_keys(&self) -> Result<JwkSet, Error> {
+    async fn fetch_keys(&self) -> Result<JwkSet, ApiError> {
         let client = awc::Client::default();
 
         let req = client.get(&self.url);
@@ -86,7 +86,7 @@ impl JwksClient {
         let body = match res.status() {
             StatusCode::OK => res.body().await.unwrap(),
             _ => {
-                return Err(Error::InternalServerError(format!(
+                return Err(ApiError::InternalServerError(format!(
                     "Failed to fetch {} {}",
                     res.status(),
                     self.url

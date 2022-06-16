@@ -99,7 +99,7 @@ impl Client {
             loop {
                 interval.tick().await;
 
-                let len = {
+                let events = {
                     let queue = me.queue.read();
 
                     if queue.len() == 0 {
@@ -108,32 +108,31 @@ impl Client {
 
                     let mut events = Vec::new();
 
-                    for event in queue.iter().take(2) {
-                        events.push(event);
+                    for event in queue.iter().take(1000) {
+                        events.push(event.clone());
                     }
 
-                    let len = events.len();
-                    let client = me.client();
-
-                    let res = client
-                        .post(format!("{}/publish", me.options.url.to_owned()))
-                        .send_json(&events)
-                        .await;
-
-                    if let Err(e) = res {
-                        error!("{}", e);
-                    }
-
-                    len
+                    events
                 };
 
-                if len == 0 {
+                if events.is_empty() {
                     continue;
+                }
+
+                let client = me.client();
+
+                let res = client
+                    .post(format!("{}/publish", me.options.url.to_owned()))
+                    .send_json(&events)
+                    .await;
+
+                if let Err(e) = res {
+                    error!("{}", e);
                 }
 
                 {
                     let mut queue = me.queue.write();
-                    queue.drain(0..len);
+                    queue.drain(0..events.len());
                 }
             }
         });
@@ -153,7 +152,7 @@ impl Client {
             .finish()
     }
 
-    pub fn put<'a, U: TryFrom<Uri> + Display>(&self, uri: &'a U) -> ClientRequest {
+    pub fn put<U: TryFrom<Uri> + Display>(&self, uri: &'_ U) -> ClientRequest {
         self.client().put(format!("{}{}", self.options.url, uri))
     }
 

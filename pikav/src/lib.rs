@@ -303,7 +303,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Pikav<T> {
         let mut user_clients = self.user_clients.write();
         user_clients
             .entry(options.user_id)
-            .or_insert(HashSet::new())
+            .or_insert_with(HashSet::new)
             .insert(options.client_id);
 
         Ok(())
@@ -341,5 +341,11 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Pikav<T> {
                 }
             }
         }
+    }
+}
+
+impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Default for Pikav<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }

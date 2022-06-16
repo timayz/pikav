@@ -4,7 +4,7 @@ use pikav::topic::TopicFilterError;
 use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug)]
-pub enum Error {
+pub enum ApiError {
     #[error("internal server error")]
     InternalServerError(String),
 
@@ -15,25 +15,25 @@ pub enum Error {
     NotFound,
 }
 
-impl Error {
+impl ApiError {
     pub fn into_response(self) -> Result<HttpResponse, Self> {
         Err(self)
     }
 }
 
-impl ResponseError for Error {
+impl ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match *self {
-            Error::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Error::BadRequest(_) => StatusCode::BAD_REQUEST,
-            Error::NotFound => StatusCode::NOT_FOUND,
+            ApiError::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::BadRequest(_) => StatusCode::BAD_REQUEST,
+            ApiError::NotFound => StatusCode::NOT_FOUND,
         }
     }
 
     fn error_response(&self) -> HttpResponse {
         let mut res = HttpResponseBuilder::new(self.status_code());
 
-        // if let Error::InternalServerError(e) = self {
+        // if let ApiError::InternalServerError(e) = self {
         //     error!("{}", e);
         // }
 
@@ -43,26 +43,26 @@ impl ResponseError for Error {
     }
 }
 
-impl From<serde_json::Error> for Error {
+impl From<serde_json::Error> for ApiError {
     fn from(e: serde_json::Error) -> Self {
-        Error::InternalServerError(e.to_string())
+        ApiError::InternalServerError(e.to_string())
     }
 }
 
-impl From<TopicFilterError> for Error {
+impl From<TopicFilterError> for ApiError {
     fn from(e: TopicFilterError) -> Self {
-        Error::BadRequest(e.to_string())
+        ApiError::BadRequest(e.to_string())
     }
 }
 
-impl From<josekit::JoseError> for Error {
+impl From<josekit::JoseError> for ApiError {
     fn from(e: josekit::JoseError) -> Self {
-        Error::InternalServerError(e.to_string())
+        ApiError::InternalServerError(e.to_string())
     }
 }
 
-impl From<pikav::Error> for Error {
+impl From<pikav::Error> for ApiError {
     fn from(_: pikav::Error) -> Self {
-        Error::NotFound
+        ApiError::NotFound
     }
 }

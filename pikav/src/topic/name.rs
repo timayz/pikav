@@ -88,7 +88,7 @@ impl Serialize for TopicName {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&self.0.as_str())
+        serializer.serialize_str(self.0.as_str())
     }
 }
 

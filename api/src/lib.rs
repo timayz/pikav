@@ -14,7 +14,7 @@ use actix_web::{
     web::{self, Bytes, Data},
     App as ActixApp, Error as ActixError, HttpRequest, HttpResponse, HttpServer,
 };
-use error::Error;
+use error::ApiError;
 use extractor::{Client as ReqClient, PikavInfo, User};
 use futures_core::Stream;
 use futures_util::future::join_all;
@@ -79,7 +79,7 @@ async fn subscribe(
     user: User,
     info: PikavInfo,
     req: HttpRequest,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ApiError> {
     let filter = TopicFilter::new(filter.to_owned())?;
 
     pikav
@@ -106,7 +106,7 @@ async fn unsubscribe(
     nodes: Data<Vec<client::Client>>,
     info: PikavInfo,
     req: HttpRequest,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ApiError> {
     let filter = TopicFilter::new(filter.to_owned())?;
 
     pikav
@@ -130,12 +130,12 @@ async fn publish(
     nodes: Data<Vec<client::Client>>,
     input: web::Json<Vec<client::Event>>,
     info: PikavInfo,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, ApiError> {
     let mut pub_events = Vec::new();
 
     for e in input.iter() {
         let topic =
-            TopicName::new(e.topic.to_owned()).map_err(|e| Error::BadRequest(e.to_string()))?;
+            TopicName::new(e.topic.to_owned()).map_err(|e| ApiError::BadRequest(e.to_string()))?;
 
         pub_events.push(PubEvent {
             event: Event {
@@ -160,11 +160,11 @@ async fn publish(
 }
 
 #[get("/events")]
-async fn events(pikav: Data<Pikav<Bytes>>) -> Result<HttpResponse, Error> {
+async fn events(pikav: Data<Pikav<Bytes>>) -> Result<HttpResponse, ApiError> {
     let rx = match pikav.new_client() {
         Some(rx) => rx,
         None => {
-            return Error::InternalServerError("Failed to create client".to_owned()).into_response()
+            return ApiError::InternalServerError("Failed to create client".to_owned()).into_response()
         }
     };
 
@@ -224,6 +224,6 @@ impl Stream for Client {
     ) -> std::task::Poll<Option<Self::Item>> {
         self.0
             .poll_recv(cx)
-            .map(|res| Some(res.ok_or(ErrorInternalServerError(""))))
+            .map(|res| Some(res.ok_or_else(|| ErrorInternalServerError(""))))
     }
 }
