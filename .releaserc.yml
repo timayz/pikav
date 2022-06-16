@@ -8,7 +8,7 @@ plugins:
   - path: "@semantic-release/exec"
     verifyConditionsCmd: "semantic-release-rust verify-conditions"
     prepareCmd: "semantic-release-rust prepare ${nextRelease.version}"
-    publishCmd: "semantic-release-rust publish"
+    publishCmd: "cargo publish --package pikav && cargo publish --package pikav-client"
   - path: "@semantic-release/exec"
     prepareCmd: "cargo update"
   - path: "@semantic-release/exec"
