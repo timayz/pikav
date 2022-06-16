@@ -2,14 +2,9 @@ addr: ":6750"
 
 jwks_url: http://oathkeeper:4456/.well-known/jwks.json
 
-zone: eu-west-1a
-
 nodes:
   - url: http://eu-west-1b.pikav.internal:6750
-    zone: eu-west-1b
     shared: true
   - url: http://eu-west-1c.pikav.internal:6750
-    zone: eu-west-1c
     shared: true
   - url: http://us-west-1a.pikav.internal:6750
-    zone: us-west-1b
