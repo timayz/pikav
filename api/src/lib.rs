@@ -164,7 +164,8 @@ async fn events(pikav: Data<Pikav<Bytes>>) -> Result<HttpResponse, ApiError> {
     let rx = match pikav.new_client() {
         Some(rx) => rx,
         None => {
-            return ApiError::InternalServerError("Failed to create client".to_owned()).into_response()
+            return ApiError::InternalServerError("Failed to create client".to_owned())
+                .into_response()
         }
     };
 

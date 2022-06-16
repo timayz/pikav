@@ -47,7 +47,8 @@ impl FromRequest for User {
 
             let jwk = client.get(&token).await?;
             let verifier = RS256.verifier_from_jwk(&jwk).map_err(ApiError::from)?;
-            let (payload, _) = jwt::decode_with_verifier(&token, &verifier).map_err(ApiError::from)?;
+            let (payload, _) =
+                jwt::decode_with_verifier(&token, &verifier).map_err(ApiError::from)?;
 
             let mut validator = JwtPayloadValidator::new();
             validator.set_base_time(SystemTime::now());
