@@ -145,7 +145,7 @@ async fn delete(
 ) -> impl Responder {
     let mut conn = pool.acquire().await.unwrap();
 
-    let rows_affected = sqlx::query("DELETE todos WHERE id = ?1")
+    let rows_affected = sqlx::query("DELETE FROM todos WHERE id = ?1")
         .bind(id.to_owned())
         .execute(&mut conn)
         .await
