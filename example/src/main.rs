@@ -183,10 +183,9 @@ async fn main() -> std::io::Result<()> {
         shared: None,
     });
 
-    let pool =
-        SqlitePool::connect("sqlite://target/todos.db")
-            .await
-            .unwrap();
+    let pool = SqlitePool::connect("sqlite://target/todos.db")
+        .await
+        .unwrap();
 
     HttpServer::new(move || {
         App::new()
