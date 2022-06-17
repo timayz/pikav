@@ -39,13 +39,26 @@ demo.us-west-1a:
 	PORT=3004 PIKAV_PORT=6753 cargo run --bin example
 
 up:
-	docker-compose up -d
+	docker-compose up -d -v --remove-orphan
 
 stop:
 	docker-compose stop
 
 down:
 	docker-compose down -v --remove-orphan
+
+standalone:
+	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml pull
+	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up -d --remove-orphan
+
+standalone.stop:
+	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml stop
+
+standalone.down:
+	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml down -v --remove-orphan
+
+standalone.logs:
+	docker-compose -f docker-compose.yml -f docker-compose.standalone.yml logs -f
 
 clippy:
 	cargo clippy --all-features -- -D warnings
