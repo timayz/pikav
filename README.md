@@ -1,3 +1,12 @@
+Pikav is a simple cloud native SSE server with topic subscription
+
+---
+
+## Getting Started
+
+### Docker compose
+
+```yaml
 version: "3.9"
 
 services:
@@ -56,3 +65,22 @@ services:
       default:
         aliases:
           - us-west-1a.pikav.internal
+```
+
+### Config
+
+```yaml
+listen: "0.0.0.0:6750"
+
+cors_permissive: true
+
+jwks_url: http://127.0.0.1:4456/.well-known/jwks.json
+
+nodes:
+  - url: http://127.0.0.1:6751
+    shared: true
+  - url: http://127.0.0.1:6752
+    shared: true
+  - url: http://127.0.0.1:6753
+
+```

@@ -1,4 +1,5 @@
-addr: ":6750"
+listen: "0.0.0.0:6750"
+cors_permissive: true
 
 jwks_url: http://oathkeeper:4456/.well-known/jwks.json
 
