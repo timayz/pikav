@@ -70,9 +70,9 @@ impl Forward {
     }
 }
 
-#[put(r"/subscribe/{filter:.*}")]
+#[put(r"/subscribe/{namespace}/{filter:.*}")]
 async fn subscribe(
-    filter: web::Path<String>,
+    params: web::Path<(String, String)>,
     pikav: Data<Pikav<Bytes>>,
     client: ReqClient,
     nodes: Data<Vec<client::Client>>,
@@ -80,12 +80,13 @@ async fn subscribe(
     info: PikavInfo,
     req: HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
-    let filter = TopicFilter::new(filter.to_owned())?;
+    let params = params.into_inner();
+    let filter = TopicFilter::new(params.1.to_owned())?;
 
     pikav
         .subscribe(SubscribeOptions {
             filter,
-            user_id: user.0,
+            user_id: format!("{}/{}", params.0, user.0),
             client_id: client.0.to_owned(),
         })
         .ok();
@@ -97,9 +98,9 @@ async fn subscribe(
     Ok(HttpResponse::Ok().json(json! ({ "success": true })))
 }
 
-#[put(r"/unsubscribe/{filter:.*}")]
+#[put(r"/unsubscribe/{namespace}/{filter:.*}")]
 async fn unsubscribe(
-    filter: web::Path<String>,
+    params: web::Path<(String, String)>,
     pikav: Data<Pikav<Bytes>>,
     client: ReqClient,
     user: User,
@@ -107,12 +108,13 @@ async fn unsubscribe(
     info: PikavInfo,
     req: HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
-    let filter = TopicFilter::new(filter.to_owned())?;
+    let params = params.into_inner();
+    let filter = TopicFilter::new(params.1.to_owned())?;
 
     pikav
         .unsubscribe(SubscribeOptions {
             filter,
-            user_id: user.0,
+            user_id: format!("{}/{}", params.0, user.0),
             client_id: client.0,
         })
         .ok();
@@ -124,8 +126,9 @@ async fn unsubscribe(
     Ok(HttpResponse::Ok().json(json! ({ "success": true })))
 }
 
-#[post("/publish")]
+#[post("/publish/{namespace}")]
 async fn publish(
+    namespace: web::Path<String>,
     pikav: Data<Pikav<Bytes>>,
     nodes: Data<Vec<client::Client>>,
     input: web::Json<Vec<client::Event>>,
@@ -144,7 +147,7 @@ async fn publish(
                 data: e.data.clone(),
                 metadata: e.metadata.clone(),
             },
-            user_id: e.user_id.to_owned(),
+            user_id: format!("{}/{}", namespace, e.user_id),
         });
     }
 
