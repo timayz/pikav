@@ -180,7 +180,7 @@ async fn main() -> std::io::Result<()> {
     let jwks_client = JwksClient::new("http://127.0.0.1:4456/.well-known/jwks.json");
     let pikva_client = pikav_client::Client::new(pikav_client::ClientOptions {
         url: format!("http://127.0.0.1:{}", std::env::var("PIKAV_PORT").unwrap()),
-        shared: None,
+        namespace: None,
     });
 
     let pool = SqlitePool::connect("sqlite://target/todos.db")

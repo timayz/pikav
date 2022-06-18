@@ -39,7 +39,7 @@ demo.us-west-1a:
 	PORT=3004 PIKAV_PORT=6753 cargo run --bin example
 
 up:
-	docker-compose up -d -v --remove-orphan
+	docker-compose up -d --remove-orphan
 
 stop:
 	docker-compose stop

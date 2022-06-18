@@ -61,26 +61,40 @@ impl Event {
 #[derive(Debug, Clone, Deserialize)]
 pub struct ClientOptions {
     pub url: String,
+    pub namespace: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ClusterOptions {
+    pub url: String,
+    pub namespace: Option<String>,
     pub shared: Option<bool>,
 }
 
 #[derive(Clone)]
 pub struct Client {
-    options: ClientOptions,
+    options: ClusterOptions,
     queue: Arc<RwLock<Vec<Event>>>,
     is_cluster: bool,
 }
 
 impl Client {
     pub fn new(options: ClientOptions) -> Self {
-        Self::build(options, false)
+        Self::build(
+            ClusterOptions {
+                url: options.url,
+                namespace: options.namespace,
+                shared: None,
+            },
+            false,
+        )
     }
 
-    pub fn cluster(options: ClientOptions) -> Self {
+    pub fn cluster(options: ClusterOptions) -> Self {
         Self::build(options, true)
     }
 
-    fn build(options: ClientOptions, is_cluster: bool) -> Self {
+    fn build(options: ClusterOptions, is_cluster: bool) -> Self {
         let me = Self {
             options,
             queue: Arc::new(RwLock::new(Vec::new())),
@@ -122,7 +136,14 @@ impl Client {
                 let client = me.client();
 
                 let res = client
-                    .post(format!("{}/publish", me.options.url.to_owned()))
+                    .post(format!(
+                        "{}/publish/{}",
+                        me.options.url.to_owned(),
+                        me.options
+                            .namespace
+                            .to_owned()
+                            .unwrap_or("_".to_lowercase())
+                    ))
                     .send_json(&events)
                     .await;
 

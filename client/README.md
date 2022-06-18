@@ -12,7 +12,7 @@ use pikav_client::{Client, ClientOptions, Event};
 async fn main() -> std::io::Result<()> {
     let pikva_client = Client::new(ClientOptions {
         url: "http://127.0.0.1:6750".to_owned(),
-        shared: None,
+        namespace: None,
     });
 
     client.publish(vec![Event::new(

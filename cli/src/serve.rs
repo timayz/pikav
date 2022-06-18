@@ -1,6 +1,6 @@
 use config::{Config, ConfigError, Environment, File};
 use pikav_api::{
-    client::{Client, ClientOptions},
+    client::{Client, ClusterOptions},
     App, AppOptions, Pikav,
 };
 use serde::Deserialize;
@@ -10,7 +10,7 @@ pub struct Serve {
     pub listen: String,
     pub cors_permissive: Option<bool>,
     pub jwks_url: String,
-    pub nodes: Vec<ClientOptions>,
+    pub nodes: Vec<ClusterOptions>,
 }
 
 impl Serve {
