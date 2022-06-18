@@ -142,7 +142,7 @@ impl Client {
                         me.options
                             .namespace
                             .to_owned()
-                            .unwrap_or("_".to_lowercase())
+                            .unwrap_or_else(|| "_".to_owned())
                     ))
                     .send_json(&events)
                     .await;
