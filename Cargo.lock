@@ -633,7 +633,7 @@ checksum = "77f3309417938f28bf8228fcff79a4a37103981e3e186d2ccd19c74b38f4eb71"
 
 [[package]]
 name = "example"
-version = "0.9.3"
+version = "0.10.0"
 dependencies = [
  "actix-web",
  "futures",
@@ -1373,7 +1373,7 @@ dependencies = [
 
 [[package]]
 name = "pikav"
-version = "0.9.3"
+version = "0.10.0"
 dependencies = [
  "lazy_static",
  "nanoid",
@@ -1387,7 +1387,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-api"
-version = "0.9.3"
+version = "0.10.0"
 dependencies = [
  "actix-cors",
  "actix-web",
@@ -1407,7 +1407,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-cli"
-version = "0.9.3"
+version = "0.10.0"
 dependencies = [
  "actix-rt",
  "clap",
@@ -1419,7 +1419,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-client"
-version = "0.9.3"
+version = "0.10.0"
 dependencies = [
  "actix-rt",
  "awc",
