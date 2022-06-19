@@ -55,12 +55,6 @@ impl From<TopicFilterError> for ApiError {
     }
 }
 
-impl From<josekit::JoseError> for ApiError {
-    fn from(e: josekit::JoseError) -> Self {
-        ApiError::InternalServerError(e.to_string())
-    }
-}
-
 impl From<pikav::Error> for ApiError {
     fn from(_: pikav::Error) -> Self {
         ApiError::NotFound

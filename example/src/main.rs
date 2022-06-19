@@ -1,8 +1,7 @@
 use actix_web::{
     delete, get, post, put, rt::time::sleep, web, App, HttpResponse, HttpServer, Responder,
 };
-use pikav_api::extractor::User;
-use pikav_api::jwks::JwksClient;
+use actix_jwks::{JwksClient, JwtPayload};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -25,7 +24,7 @@ pub struct ReadTodo {
 }
 
 #[get("/todos")]
-async fn list(pool: web::Data<SqlitePool>, user: User) -> impl Responder {
+async fn list(pool: web::Data<SqlitePool>, jwt_payload: JwtPayload) -> impl Responder {
     let mut conn = pool.acquire().await.unwrap();
 
     let v = sqlx::query_as::<_, ReadTodo>(
@@ -35,7 +34,7 @@ FROM todos
 WHERE user_id = ?1
         "#,
     )
-    .bind(user.0)
+    .bind(jwt_payload.subject)
     .fetch_all(&mut conn)
     .await
     .unwrap();
@@ -52,14 +51,14 @@ struct CreateInput {
 async fn create(
     pool: web::Data<SqlitePool>,
     client: web::Data<pikav_client::Client>,
-    user: User,
+    jwt_payload: JwtPayload,
     input: web::Json<CreateInput>,
 ) -> impl Responder {
     let mut conn = pool.acquire().await.unwrap();
 
     let id = sqlx::query("INSERT INTO todos ( text, user_id ) VALUES ( ?1, ?2 )")
         .bind(input.text.to_owned())
-        .bind(user.0.to_owned())
+        .bind(jwt_payload.subject.to_owned())
         .execute(&mut conn)
         .await
         .unwrap()
@@ -71,7 +70,7 @@ async fn create(
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
         client.publish(vec![pikav_client::Event::new(
-            user.0,
+            jwt_payload.subject,
             format!("todos/{}", id),
             "Created",
             ReadTodo {
@@ -97,7 +96,7 @@ async fn update(
     id: web::Path<i64>,
     pool: web::Data<SqlitePool>,
     client: web::Data<pikav_client::Client>,
-    user: User,
+    jwt_payload: JwtPayload,
     input: web::Json<UpdateInput>,
 ) -> impl Responder {
     let mut conn = pool.acquire().await.unwrap();
@@ -121,7 +120,7 @@ async fn update(
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
         client.publish(vec![pikav_client::Event::new(
-            user.0,
+            jwt_payload.subject,
             format!("todos/{}", id),
             "Updated",
             ReadTodo {
@@ -141,7 +140,7 @@ async fn delete(
     id: web::Path<i64>,
     pool: web::Data<SqlitePool>,
     client: web::Data<pikav_client::Client>,
-    user: User,
+    jwt_payload: JwtPayload,
 ) -> impl Responder {
     let mut conn = pool.acquire().await.unwrap();
 
@@ -162,7 +161,7 @@ async fn delete(
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
         client.publish(vec![pikav_client::Event::new(
-            user.0,
+            jwt_payload.subject,
             format!("todos/{}", id),
             "Deleted",
             json!({
