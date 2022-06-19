@@ -1,7 +1,7 @@
+use actix_jwks::{JwksClient, JwtPayload};
 use actix_web::{
     delete, get, post, put, rt::time::sleep, web, App, HttpResponse, HttpServer, Responder,
 };
-use actix_jwks::{JwksClient, JwtPayload};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
