@@ -1,11 +1,11 @@
 mod error;
 
 pub mod extractor;
-pub mod jwks;
 
 use std::collections::HashSet;
 
 use actix_cors::Cors;
+use actix_jwks::{JwksClient, JwtPayload};
 use actix_web::{
     error::ErrorInternalServerError,
     get,
@@ -15,10 +15,9 @@ use actix_web::{
     App as ActixApp, Error as ActixError, HttpRequest, HttpResponse, HttpServer,
 };
 use error::ApiError;
-use extractor::{Client as ReqClient, PikavInfo, User};
+use extractor::{Client as ReqClient, PikavInfo};
 use futures_core::Stream;
 use futures_util::future::join_all;
-use jwks::JwksClient;
 use pikav::{
     topic::{TopicFilter, TopicName},
     Event, PubEvent,
@@ -76,7 +75,7 @@ async fn subscribe(
     pikav: Data<Pikav<Bytes>>,
     client: ReqClient,
     nodes: Data<Vec<client::Client>>,
-    user: User,
+    jwt: JwtPayload,
     info: PikavInfo,
     req: HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
@@ -86,7 +85,7 @@ async fn subscribe(
     pikav
         .subscribe(SubscribeOptions {
             filter,
-            user_id: format!("{}/{}", params.0, user.0),
+            user_id: format!("{}/{}", params.0, jwt.subject),
             client_id: client.0.to_owned(),
         })
         .ok();
@@ -103,7 +102,7 @@ async fn unsubscribe(
     params: web::Path<(String, String)>,
     pikav: Data<Pikav<Bytes>>,
     client: ReqClient,
-    user: User,
+    jwt: JwtPayload,
     nodes: Data<Vec<client::Client>>,
     info: PikavInfo,
     req: HttpRequest,
@@ -114,7 +113,7 @@ async fn unsubscribe(
     pikav
         .unsubscribe(SubscribeOptions {
             filter,
-            user_id: format!("{}/{}", params.0, user.0),
+            user_id: format!("{}/{}", params.0, jwt.subject),
             client_id: client.0,
         })
         .ok();
