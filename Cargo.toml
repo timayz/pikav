@@ -1,9 +1,0 @@
-[workspace]
-
-members = [
-    "./cli",
-    "./client",
-    "./api",
-    "./pikav",
-    "./example"
-]

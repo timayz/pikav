@@ -9,16 +9,16 @@ serve:
 _serve: serve.eu-west-1a serve.eu-west-1b serve.eu-west-1c serve.us-west-1a
 
 serve.eu-west-1a:
-	cargo run --bin pikav-cli serve -c config/eu-west-1a
+	cargo run --bin cmd serve -c configs/eu-west-1a
 
 serve.eu-west-1b:
-	cargo run --bin pikav-cli serve -c config/eu-west-1b
+	cargo run --bin cmd serve -c configs/eu-west-1b
 
 serve.eu-west-1c:
-	cargo run --bin pikav-cli serve -c config/eu-west-1c
+	cargo run --bin cmd serve -c configs/eu-west-1c
 
 serve.us-west-1a:
-	cargo run --bin pikav-cli serve -c config/us-west-1a
+	cargo run --bin cmd serve -c configs/us-west-1a
 
 demo:
 	$(MAKE) _demo -j4
