@@ -4,16 +4,10 @@ branches:
 plugins:
   - "@semantic-release/commit-analyzer"
   - "@semantic-release/release-notes-generator"
-  - "@semantic-release/github"
-  - "@timada/semantic-release-cargo"
+  - "@semantic-release/npm"
+  - path: "@semantic-release/github"
   - path: "@semantic-release/exec"
-    prepareCmd: "cargo update"
-  - path: "@semantic-release/exec"
-    prepareCmd: "cargo build --release"
+    prepareCmd: "export DOCKER_CONTENT_TRUST=1 && docker pull golang@sha256:2381c1e5f8350a901597d633b2e517775eeac7a6682be39225a93b22cfd0f8bb"
   - path: "@codedependant/semantic-release-docker"
     dockerProject: "timada0"
     dockerImage: "pikav"
-  - path: "@semantic-release/git"
-    assets:
-      - "**/Cargo.toml"
-      - Cargo.lock

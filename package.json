@@ -1,0 +1,31 @@
+{
+  "name": "root",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "pre-commit": "lint-staged",
+    "prepare": "is-ci || husky install"
+  },
+  "lint-staged": {
+    "**/*.go": [
+      "gofmt -w -s .",
+      "go mod tidy"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^8.0.2",
+    "is-ci": "^3.0.1",
+    "json5": "^2.2.3",
+    "lint-staged": "^13.0.3",
+    "openapi-types": "^12.1.0",
+    "prettier": "^2.7.1",
+    "swagger-cli": "^4.0.4"
+  },
+  "workspaces": [
+    "web"
+  ]
+}

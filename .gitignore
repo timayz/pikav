@@ -1,1 +1,7 @@
-/target
+target
+openapi.json
+.env
+
+node_modules
+dist
+.pnpm

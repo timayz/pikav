@@ -1,9 +1,11 @@
-listen: "0.0.0.0:6750"
-cluster: "[::1]:6751"
+api:
+  addr: "0.0.0.0:6750"
+  
+cluster:
+  addr: "[::1]:6751"
 
-cors_permissive: true
-
-jwks_url: http://127.0.0.1:4456/.well-known/jwks.json
+jwks:
+  url: http://127.0.0.1:4456/.well-known/jwks.json
 
 nodes:
   - http://[::1]:6761

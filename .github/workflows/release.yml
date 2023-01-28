@@ -5,10 +5,11 @@ on:
       - main
 
 jobs:
-  rust:
-    uses: timada-org/.github/.github/workflows/rust-release.yml@v2.5.0
+  service:
+    uses: timada-org/.github/.github/workflows/service-release.yml@v2.13.3
+    with:
+      service_name: cobase
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
       DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
       DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
