@@ -1,6 +1,6 @@
 FROM gcr.io/distroless/cc
 
-COPY ./target/release/pikav-cli /usr/bin/pikav
+COPY ./target/release/cmd /usr/bin/pikav
 
 EXPOSE 6750
 

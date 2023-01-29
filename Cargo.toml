@@ -1,9 +1,8 @@
 [workspace]
 
 members = [
-    "./cli",
-    "./client",
+    "./cmd",
     "./api",
     "./pikav",
-    "./example"
+    "./pikav-client"
 ]
