@@ -17,7 +17,7 @@ impl Serve {
     pub fn new(path: &str) -> Result<Self, ConfigError> {
         Config::builder()
             .add_source(File::with_name(path))
-            .add_source(File::with_name(&format!("{}.local", path)).required(false))
+            .add_source(File::with_name(&format!("{path}.local")).required(false))
             .add_source(Environment::with_prefix(env!("CARGO_PKG_NAME")))
             .build()?
             .try_deserialize()
