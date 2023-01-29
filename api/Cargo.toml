@@ -8,7 +8,7 @@ publish = false
 
 [dependencies]
 pikav = { path = "../pikav" ,version ="0.10.1"}
-pikav-client = { path = "../client" ,version ="0.10.1"}
+pikav-client = { path = "../pikav-client" ,version ="0.10.1"}
 
 actix-web = "4.0.1"
 actix-cors = "0.6.1"
