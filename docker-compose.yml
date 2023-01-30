@@ -1,0 +1,8 @@
+version: '3.9'
+
+services:
+  fake-jwt-auth-server:
+    image: michaelruocco/fake-jwt-auth-server
+    container_name: fake-jwt-auth-server
+    ports:
+      - 6550:80

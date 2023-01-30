@@ -1,9 +1,17 @@
-use actix_rt::time::{interval_at, Instant};
-use awc::{http::Uri, ClientRequest};
+use actix_rt::time::{interval_at, sleep, Instant};
+use error::ClientError;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, sync::Arc, time::Duration};
+use timada::{pikav_client::PikavClient, PublishRequest};
+use std::{sync::Arc, time::Duration};
+use tonic::transport::Channel;
 use tracing::error;
+
+mod error;
+
+mod timada {
+    tonic::include_proto!("timada");
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Event {
@@ -64,46 +72,47 @@ pub struct ClientOptions {
     pub namespace: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct ClusterOptions {
-    pub url: String,
-    pub namespace: Option<String>,
-    pub shared: Option<bool>,
-}
-
 #[derive(Clone)]
 pub struct Client {
-    options: ClusterOptions,
+    channel: Channel,
     queue: Arc<RwLock<Vec<Event>>>,
-    is_cluster: bool,
 }
 
 impl Client {
-    pub fn new(options: ClientOptions) -> Self {
-        Self::build(
-            ClusterOptions {
-                url: options.url,
-                namespace: options.namespace,
-                shared: None,
-            },
-            false,
-        )
+    pub fn from_vec<T: Into<String>>(values: Vec<T>) -> Result<Vec<Self>, Vec<ClientError>> {
+        let mut clients = Vec::new();
+        let mut errors = Vec::new();
+
+        for value in values {
+            match Self::new(ClientOptions {
+                url: value.into(),
+                namespace: None,
+            }) {
+                Ok(client) => clients.push(client),
+                Err(e) => errors.push(e),
+            }
+        }
+
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+
+        Ok(clients)
     }
 
-    pub fn cluster(options: ClusterOptions) -> Self {
-        Self::build(options, true)
-    }
+    pub fn new(options: ClientOptions) -> Result<Self, ClientError> {
+        let channel = Channel::from_shared(options.url.to_owned())
+            .map_err(|e| ClientError::Unknown(e.to_string()))?
+            .connect_lazy();
 
-    fn build(options: ClusterOptions, is_cluster: bool) -> Self {
-        let me = Self {
-            options,
+        let client = Self {
+            channel,
             queue: Arc::new(RwLock::new(Vec::new())),
-            is_cluster,
         };
 
-        Self::spawn_queue(me.clone());
+        Self::spawn_queue(client.clone());
 
-        me
+        Ok(client)
     }
 
     fn spawn_queue(me: Self) {
@@ -133,22 +142,17 @@ impl Client {
                     continue;
                 }
 
-                let client = me.client();
+                let mut client = PikavClient::new(me.channel.clone());
 
-                let res = client
-                    .post(format!(
-                        "{}/publish/{}",
-                        me.options.url.to_owned(),
-                        me.options
-                            .namespace
-                            .to_owned()
-                            .unwrap_or_else(|| "_".to_owned())
-                    ))
-                    .send_json(&events)
-                    .await;
+                let request = tonic::Request::new(PublishRequest {
+                    propagate: true,
+                    ..Default::default()
+                });
 
-                if let Err(e) = res {
-                    error!("{}", e);
+                if let Err(e) = client.publish(request).await {
+                    error!("{e}");
+                    sleep(Duration::from_secs(1)).await;
+                    continue;
                 }
 
                 {
@@ -159,30 +163,30 @@ impl Client {
         });
     }
 
-    fn client(&self) -> awc::Client {
-        awc::Client::builder()
-            .add_default_header((
-                "User-Agent",
-                format!(
-                    "Pikav/{}.{}",
-                    env!("CARGO_PKG_VERSION_MAJOR"),
-                    env!("CARGO_PKG_VERSION_MINOR")
-                ),
-            ))
-            .add_default_header(("X-Pikav-Cluster", self.is_cluster.to_string()))
-            .finish()
-    }
+    // fn client(&self) -> awc::Client {
+    //     awc::Client::builder()
+    //         .add_default_header((
+    //             "User-Agent",
+    //             format!(
+    //                 "Pikav/{}.{}",
+    //                 env!("CARGO_PKG_VERSION_MAJOR"),
+    //                 env!("CARGO_PKG_VERSION_MINOR")
+    //             ),
+    //         ))
+    //         .add_default_header(("X-Pikav-Cluster", self.is_cluster.to_string()))
+    //         .finish()
+    // }
 
-    pub fn put<U: TryFrom<Uri> + Display>(&self, uri: &'_ U) -> ClientRequest {
-        self.client().put(format!("{}{}", self.options.url, uri))
-    }
+    // pub fn put<U: TryFrom<Uri> + Display>(&self, uri: &'_ U) -> ClientRequest {
+    //     self.client().put(format!("{}{}", self.options.url, uri))
+    // }
 
     pub fn publish(&self, events: Vec<Event>) {
         let mut queue = self.queue.write();
         queue.extend(events);
     }
 
-    pub fn is_shared(&self) -> bool {
-        self.options.shared.unwrap_or(false)
-    }
+    // pub fn is_shared(&self) -> bool {
+    //     self.options.shared.unwrap_or(false)
+    // }
 }
