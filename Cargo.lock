@@ -1331,11 +1331,10 @@ dependencies = [
  "pikav",
  "pikav-client",
  "prost",
- "prost-derive",
- "prost-types",
+ "serde",
+ "serde_json",
  "tokio",
  "tonic",
- "tonic-build",
  "tracing",
 ]
 

@@ -1,73 +1,89 @@
 use actix_rt::time::{interval_at, sleep, Instant};
 use error::ClientError;
 use parking_lot::RwLock;
-use serde::{Deserialize, Serialize};
-use timada::{pikav_client::PikavClient, PublishRequest};
+use serde::Deserialize;
+use serde_json::Map;
 use std::{sync::Arc, time::Duration};
+use timada::{pikav_client::PikavClient, PublishRequest};
 use tonic::transport::Channel;
 use tracing::error;
 
+pub use timada::{value::Kind, Event, ListValue, Value};
+
 mod error;
 
-mod timada {
+pub mod timada {
     tonic::include_proto!("timada");
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct Event {
-    pub user_id: String,
-    pub topic: String,
-    pub name: String,
-    pub data: serde_json::Value,
-    pub metadata: Option<serde_json::Value>,
-}
+impl Into<serde_json::Value> for Value {
+    fn into(self) -> serde_json::Value {
+        match self.kind {
+            Some(kind) => match kind {
+                Kind::DoubleValue(value) => serde_json::value::Number::from_f64(value)
+                    .map(|n| serde_json::Value::Number(n))
+                    .unwrap_or(serde_json::Value::Null),
+                Kind::FloatValue(value) => serde_json::value::Number::from_f64(value.into())
+                    .map(|n| serde_json::Value::Number(n))
+                    .unwrap_or(serde_json::Value::Null),
+                Kind::Int32Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Int64Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Uint32Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Uint64Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Sint32Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Sint64Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Fixed32Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Fixed64Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Sfixed32Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::Sfixed64Value(value) => {
+                    serde_json::Value::Number(serde_json::value::Number::from(value))
+                }
+                Kind::BoolValue(value) => serde_json::Value::Bool(value),
+                Kind::StringValue(value) => serde_json::Value::String(value),
+                Kind::ListValue(value) => {
+                    serde_json::Value::Array(value.values.into_iter().map(|v| v.into()).collect())
+                }
+                Kind::StructValue(value) => {
+                    let mut fields = Map::new();
 
-impl Event {
-    pub fn new<D: Serialize, U: Into<String>, T: Into<String>, N: Into<String>>(
-        user_id: U,
-        topic: T,
-        name: N,
-        data: D,
-    ) -> Result<Self, serde_json::Error> {
-        Ok(Self {
-            user_id: user_id.into(),
-            topic: topic.into(),
-            name: name.into(),
-            data: serde_json::to_value(data)?,
-            metadata: None,
-        })
-    }
+                    for (key, value) in &value.fields {
+                        fields.insert(key.to_owned(), value.clone().into());
+                    }
 
-    pub fn new_with_metadata<
-        D: Serialize,
-        U: Into<String>,
-        T: Into<String>,
-        N: Into<String>,
-        M: Serialize,
-    >(
-        user_id: U,
-        topic: T,
-        name: N,
-        data: D,
-        metadata: Option<M>,
-    ) -> Result<Self, serde_json::Error> {
-        let metadata = match metadata {
-            Some(metadata) => Some(serde_json::to_value(metadata)?),
-            None => None,
-        };
-
-        Ok(Self {
-            user_id: user_id.into(),
-            topic: topic.into(),
-            name: name.into(),
-            data: serde_json::to_value(data)?,
-            metadata,
-        })
+                    serde_json::Value::Object(fields)
+                }
+            },
+            None => serde_json::Value::Null,
+        }
     }
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct ClientOptions {
+pub struct ClientOptions<N: Into<String>> {
+    pub url: String,
+    pub namespace: N,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ClientInstanceOptions {
     pub url: String,
     pub namespace: Option<String>,
 }
@@ -76,6 +92,7 @@ pub struct ClientOptions {
 pub struct Client {
     channel: Channel,
     queue: Arc<RwLock<Vec<Event>>>,
+    namespace: Option<String>,
 }
 
 impl Client {
@@ -84,7 +101,7 @@ impl Client {
         let mut errors = Vec::new();
 
         for value in values {
-            match Self::new(ClientOptions {
+            match Self::new_instance(ClientInstanceOptions {
                 url: value.into(),
                 namespace: None,
             }) {
@@ -100,7 +117,14 @@ impl Client {
         Ok(clients)
     }
 
-    pub fn new(options: ClientOptions) -> Result<Self, ClientError> {
+    pub fn new<N: Into<String>>(options: ClientOptions<N>) -> Result<Self, ClientError> {
+        Self::new_instance(ClientInstanceOptions {
+            url: options.url,
+            namespace: Some(options.namespace.into()),
+        })
+    }
+
+    fn new_instance(options: ClientInstanceOptions) -> Result<Self, ClientError> {
         let channel = Channel::from_shared(options.url.to_owned())
             .map_err(|e| ClientError::Unknown(e.to_string()))?
             .connect_lazy();
@@ -108,6 +132,7 @@ impl Client {
         let client = Self {
             channel,
             queue: Arc::new(RwLock::new(Vec::new())),
+            namespace: options.namespace,
         };
 
         Self::spawn_queue(client.clone());
@@ -132,6 +157,12 @@ impl Client {
                     let mut events = Vec::new();
 
                     for event in queue.iter().take(1000) {
+                        let mut event = event.clone();
+
+                        if let Some(namespace) = &me.namespace {
+                            event.topic = format!("{}/{}", namespace, event.topic)
+                        }
+
                         events.push(event.clone());
                     }
 
@@ -142,11 +173,12 @@ impl Client {
                     continue;
                 }
 
+                let event_size = events.len();
                 let mut client = PikavClient::new(me.channel.clone());
 
                 let request = tonic::Request::new(PublishRequest {
-                    propagate: true,
-                    ..Default::default()
+                    propagate: me.namespace.is_some(),
+                    events,
                 });
 
                 if let Err(e) = client.publish(request).await {
@@ -157,36 +189,14 @@ impl Client {
 
                 {
                     let mut queue = me.queue.write();
-                    queue.drain(0..events.len());
+                    queue.drain(0..event_size);
                 }
             }
         });
     }
 
-    // fn client(&self) -> awc::Client {
-    //     awc::Client::builder()
-    //         .add_default_header((
-    //             "User-Agent",
-    //             format!(
-    //                 "Pikav/{}.{}",
-    //                 env!("CARGO_PKG_VERSION_MAJOR"),
-    //                 env!("CARGO_PKG_VERSION_MINOR")
-    //             ),
-    //         ))
-    //         .add_default_header(("X-Pikav-Cluster", self.is_cluster.to_string()))
-    //         .finish()
-    // }
-
-    // pub fn put<U: TryFrom<Uri> + Display>(&self, uri: &'_ U) -> ClientRequest {
-    //     self.client().put(format!("{}{}", self.options.url, uri))
-    // }
-
     pub fn publish(&self, events: Vec<Event>) {
         let mut queue = self.queue.write();
         queue.extend(events);
     }
-
-    // pub fn is_shared(&self) -> bool {
-    //     self.options.shared.unwrap_or(false)
-    // }
 }

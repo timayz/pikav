@@ -70,9 +70,9 @@ pub use pikav_client as client;
 //     }
 // }
 
-#[put(r"/subscribe/{namespace}/{filter:.*}")]
+#[put(r"/subscribe/{filter:.*}")]
 async fn subscribe(
-    params: web::Path<(String, String)>,
+    params: web::Path<(String,)>,
     pikav: Data<Pikav<Bytes>>,
     client: ReqClient,
     nodes: Data<Vec<client::Client>>,
@@ -81,12 +81,12 @@ async fn subscribe(
     req: HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
     let params = params.into_inner();
-    let filter = TopicFilter::new(params.1.to_owned())?;
+    let filter = TopicFilter::new(params.0.to_owned())?;
 
     pikav
         .subscribe(SubscribeOptions {
             filter,
-            user_id: format!("{}/{}", params.0, jwt.subject),
+            user_id: jwt.subject,
             client_id: client.0.to_owned(),
         })
         .ok();
@@ -98,9 +98,9 @@ async fn subscribe(
     Ok(HttpResponse::Ok().json(json! ({ "success": true })))
 }
 
-#[put(r"/unsubscribe/{namespace}/{filter:.*}")]
+#[put(r"/unsubscribe/{filter:.*}")]
 async fn unsubscribe(
-    params: web::Path<(String, String)>,
+    params: web::Path<(String,)>,
     pikav: Data<Pikav<Bytes>>,
     client: ReqClient,
     jwt: JwtPayload,
@@ -109,12 +109,12 @@ async fn unsubscribe(
     req: HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
     let params = params.into_inner();
-    let filter = TopicFilter::new(params.1.to_owned())?;
+    let filter = TopicFilter::new(params.0.to_owned())?;
 
     pikav
         .unsubscribe(SubscribeOptions {
             filter,
-            user_id: format!("{}/{}", params.0, jwt.subject),
+            user_id: jwt.subject,
             client_id: client.0,
         })
         .ok();

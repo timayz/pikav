@@ -1,17 +1,14 @@
 use bytes::Bytes;
 use pikav::{topic::TopicName, Event, PubEvent};
-use pikav_client::Client;
-use timada::pikav_server::{Pikav as PikavRpc, PikavServer};
-use timada::{
-    PublishReply, PublishRequest, SubscribeReply, SubscribeRequest, UnsubscribeReply,
-    UnsubscribeRequest,
+use pikav_client::{
+    timada::{
+        pikav_server::PikavServer, PublishReply, PublishRequest, SubscribeReply, SubscribeRequest,
+        UnsubscribeReply, UnsubscribeRequest,
+    },
+    Client,
 };
+use serde_json::Value;
 use tonic::{transport::Server, Request, Response, Status};
-use tracing::error;
-
-mod timada {
-    tonic::include_proto!("timada");
-}
 
 #[derive(Default)]
 pub struct Pikav {
@@ -20,14 +17,14 @@ pub struct Pikav {
 }
 
 #[tonic::async_trait]
-impl PikavRpc for Pikav {
+impl pikav_client::timada::pikav_server::Pikav for Pikav {
     async fn publish(
         &self,
         request: Request<PublishRequest>,
     ) -> Result<Response<PublishReply>, Status> {
-        println!("Got a request from {:?}", request.remote_addr());
         let req = request.into_inner();
-        let mut pub_events = Vec::new();
+
+        let mut pub_events: Vec<PubEvent<Value, Value>> = Vec::new();
 
         for e in req.events.iter() {
             let topic = match TopicName::new(e.topic.to_owned()) {
@@ -39,26 +36,19 @@ impl PikavRpc for Pikav {
                 event: Event {
                     topic,
                     name: e.name.to_owned(),
-                    data: "None",
-                    metadata: "None", // data: e.data.clone(),
-                                      // metadata: e.metadata.clone(),
+                    data: e.data.clone().into(),
+                    metadata: e.metadata.clone().into(),
                 },
-                user_id: format!("{}/{}", req.namespace, e.user_id),
+                user_id: e.user_id.to_owned(),
             });
         }
 
         self.pikav.publish(pub_events.iter().collect::<_>());
 
         if req.propagate {
-            // for node in self.nodes.iter() {
-            //     let mut client = PikavClient::new(node.clone());
-            //     let mut req = req.clone();
-            //     req.propagate = false;
-
-            //     if let Err(e) = client.publish(req).await {
-            //         error!("{e}");
-            //     }
-            // }
+            for node in self.nodes.iter() {
+                node.publish(req.events.clone());
+            }
         }
 
         Ok(Response::new(PublishReply { success: true }))
@@ -66,19 +56,15 @@ impl PikavRpc for Pikav {
 
     async fn subscribe(
         &self,
-        request: Request<SubscribeRequest>,
+        _request: Request<SubscribeRequest>,
     ) -> Result<Response<SubscribeReply>, Status> {
-        println!("Got a request from {:?}", request.remote_addr());
-
         Ok(Response::new(SubscribeReply { success: true }))
     }
 
     async fn unsubscribe(
         &self,
-        request: Request<UnsubscribeRequest>,
+        _request: Request<UnsubscribeRequest>,
     ) -> Result<Response<UnsubscribeReply>, Status> {
-        println!("Got a request from {:?}", request.remote_addr());
-
         Ok(Response::new(UnsubscribeReply { success: true }))
     }
 }
