@@ -23,10 +23,10 @@ impl Into<serde_json::Value> for Value {
         match self.kind {
             Some(kind) => match kind {
                 Kind::DoubleValue(value) => serde_json::value::Number::from_f64(value)
-                    .map(|n| serde_json::Value::Number(n))
+                    .map(serde_json::Value::Number)
                     .unwrap_or(serde_json::Value::Null),
                 Kind::FloatValue(value) => serde_json::value::Number::from_f64(value.into())
-                    .map(|n| serde_json::Value::Number(n))
+                    .map(serde_json::Value::Number)
                     .unwrap_or(serde_json::Value::Null),
                 Kind::Int32Value(value) => {
                     serde_json::Value::Number(serde_json::value::Number::from(value))

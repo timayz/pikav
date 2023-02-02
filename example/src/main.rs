@@ -84,7 +84,7 @@ async fn create(
 
         client.publish(vec![Event {
             user_id: jwt_payload.subject,
-            topic: format!("todos/{}", id),
+            topic: format!("todos/{id}"),
             name: "Created".to_owned(),
             data: Some(pikav_client::Value {
                 kind: Some(Kind::StructValue(Struct {
@@ -165,7 +165,7 @@ async fn update(
 
         client.publish(vec![Event {
             user_id: jwt_payload.subject,
-            topic: format!("todos/{}", id),
+            topic: format!("todos/{id}"),
             name: "Updated".to_owned(),
             data: Some(pikav_client::Value {
                 kind: Some(Kind::StructValue(Struct {
@@ -235,7 +235,7 @@ async fn delete(
 
         client.publish(vec![Event {
             user_id: jwt_payload.subject,
-            topic: format!("todos/{}", id),
+            topic: format!("todos/{id}"),
             name: "Deleted".to_owned(),
             data: Some(pikav_client::Value {
                 kind: Some(Kind::StructValue(Struct {

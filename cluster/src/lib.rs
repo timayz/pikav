@@ -125,7 +125,7 @@ impl Cluster {
             nodes: self.options.nodes.clone(),
         };
 
-        println!("PikavServer listening on {}", addr);
+        println!("PikavServer listening on {addr}");
 
         Server::builder()
             .add_service(PikavServer::new(pikav))

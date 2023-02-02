@@ -40,7 +40,7 @@ impl Serve {
     pub async fn run(&self) -> Result<(), std::io::Error> {
         let nodes = match Client::from_vec(self.nodes.clone()) {
             Ok(nodes) => nodes,
-            Err(e) => panic!("{:?}", e),
+            Err(e) => panic!("{e:?}"),
         };
 
         let pikav = Pikav::new();
@@ -55,7 +55,7 @@ impl Serve {
             listen: self.addr.api.to_owned(),
             jwks: self.jwks.clone(),
             cors: self.cors.clone(),
-            pikav: pikav,
+            pikav,
             nodes,
         });
 
