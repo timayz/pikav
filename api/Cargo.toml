@@ -7,8 +7,8 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pikav = { path = "../pikav", version = "0.10.2" }
-pikav-client = { path = "../pikav-client", version = "0.10.2" }
+pikav = { path = "../pikav" }
+pikav-client = { path = "../pikav-client" }
 
 actix-web = "4.3.0"
 actix-cors = "0.6.4"
