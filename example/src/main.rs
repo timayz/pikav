@@ -260,7 +260,8 @@ async fn main() -> std::io::Result<()> {
     let pikv_client = pikav_client::Client::new(pikav_client::ClientOptions {
         url: format!("http://[::1]:{}", std::env::var("PIKAV_PORT").unwrap()),
         namespace: "example",
-    }).unwrap();
+    })
+    .unwrap();
 
     let pool = SqlitePool::connect("sqlite://target/todos.db?mode=rwc")
         .await

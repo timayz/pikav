@@ -1,5 +1,8 @@
 use bytes::Bytes;
-use pikav::{topic::{TopicName, TopicFilter}, Event, PubEvent, SubscribeOptions};
+use pikav::{
+    topic::{TopicFilter, TopicName},
+    Event, PubEvent, SubscribeOptions,
+};
 use pikav_client::{
     timada::{
         pikav_server::PikavServer, PublishReply, PublishRequest, SubscribeReply, SubscribeRequest,
