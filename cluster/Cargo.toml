@@ -1,0 +1,19 @@
+[package]
+name = "pikav-cluster"
+version = "0.10.1"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pikav = { path = "../pikav" ,version ="0.10.1"}
+pikav-client = { path = "../pikav-client" ,version ="0.10.1"}
+
+tonic = { version = "0.8.3", features = ["tls"] }
+prost = "0.11.6"
+bytes = "1.4.0"
+tracing = "0.1.37"
+tokio = { version = "1.25.0", features = [ "rt-multi-thread", "time", "fs", "macros", "net"] }
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.91"

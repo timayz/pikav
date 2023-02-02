@@ -1,16 +1,30 @@
 use config::{Config, ConfigError, Environment, File};
-use pikav_api::{
-    client::{Client, ClusterOptions},
-    App, AppOptions, Pikav,
-};
+use pikav_api::{client::Client, App, AppCors, AppJwks, AppOptions, Pikav};
+use pikav_cluster::{Cluster, ClusterOptions};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
+pub struct ServeCors {
+    pub permissive: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ServeJwks {
+    pub url: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ServeAddr {
+    pub api: String,
+    pub cluster: String,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Serve {
-    pub listen: String,
-    pub cors_permissive: Option<bool>,
-    pub jwks_url: String,
-    pub nodes: Vec<ClusterOptions>,
+    pub addr: ServeAddr,
+    pub cors: Option<AppCors>,
+    pub jwks: AppJwks,
+    pub nodes: Vec<String>,
 }
 
 impl Serve {
@@ -24,20 +38,28 @@ impl Serve {
     }
 
     pub async fn run(&self) -> Result<(), std::io::Error> {
-        let nodes = self
-            .nodes
-            .iter()
-            .map(|node| Client::cluster(node.clone()))
-            .collect();
+        let nodes = match Client::from_vec(self.nodes.clone()) {
+            Ok(nodes) => nodes,
+            Err(e) => panic!("{e:?}"),
+        };
+
         let pikav = Pikav::new();
 
+        let cluster = Cluster::new(ClusterOptions {
+            addr: self.addr.cluster.to_owned(),
+            pikav: pikav.clone(),
+            nodes: nodes.clone(),
+        });
+
         let app = App::new(AppOptions {
-            listen: self.listen.to_owned(),
-            jwks_url: self.jwks_url.to_owned(),
-            cors_permissive: self.cors_permissive.unwrap_or(false),
+            listen: self.addr.api.to_owned(),
+            jwks: self.jwks.clone(),
+            cors: self.cors.clone(),
             pikav,
             nodes,
         });
+
+        actix_rt::spawn(async move { cluster.serve().await });
 
         app.run().await
     }

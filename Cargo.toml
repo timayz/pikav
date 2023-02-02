@@ -3,6 +3,8 @@
 members = [
     "./cmd",
     "./api",
+    "./cluster",
     "./pikav",
-    "./pikav-client"
+    "./pikav-client",
+    "./example"
 ]

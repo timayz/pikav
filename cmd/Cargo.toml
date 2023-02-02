@@ -8,9 +8,11 @@ publish = false
 
 [dependencies]
 pikav-api = { path = "../api" ,version ="0.10.1"}
+pikav-cluster = { path = "../cluster" ,version ="0.10.1"}
+pikav-client = { path = "../pikav-client" ,version ="0.10.1"}
 
-config = "0.13.1"
-serde = "1.0.81"
-serde_json = "1.0.81"
-clap = "3.1.18"
-actix-rt = "2.7.0"
+config = "0.13.3"
+serde = "1.0.152"
+serde_json = "1.0.91"
+clap = "4.1.4"
+actix-rt = "2.8.0"

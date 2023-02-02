@@ -1,28 +1,55 @@
 dev:
-	$(MAKE) _dev -j3
+	$(MAKE) _dev -j8
 
-_dev: dev.eu-west-1a dev.eu-west-1b dev.eu-west-1c
+_dev: _serve _demo
 
-dev.eu-west-1a:
-	cargo run --bin pikav-cli serve -c configs/eu-west-1a
+serve:
+	$(MAKE) _serve -j4
 
-dev.eu-west-1b:
-	cargo run --bin pikav-cli serve -c configs/eu-west-1b
+_serve: serve.eu-west-1a serve.eu-west-1b serve.us-west-1a
 
-dev.eu-west-1c:
-	cargo run --bin pikav-cli serve -c configs/eu-west-1c
+serve.eu-west-1a:
+	cargo run --bin cmd serve -c configs/eu-west-1a
+
+serve.eu-west-1b:
+	cargo run --bin cmd serve -c configs/eu-west-1b
+
+serve.us-west-1a:
+	cargo run --bin cmd serve -c configs/us-west-1a
+
+demo:
+	$(MAKE) _demo -j4
+
+_demo: demo.eu-west-1a demo.eu-west-1b demo.us-west-1a
+
+demo.eu-west-1a:
+	PORT=3001 PIKAV_PORT=6751 cargo run --bin example
+
+demo.eu-west-1b:
+	PORT=3002 PIKAV_PORT=6761 cargo run --bin example
+
+demo.us-west-1a:
+	PORT=3003 PIKAV_PORT=6771 cargo run --bin example
+
+pub.eu-west-1a:
+	cargo run --bin cmd publish -c configs/eu-west-1a
 
 up:
-	docker-compose up -d --remove-orphan
+	docker compose up -d --remove-orphans
 
 stop:
-	docker-compose stop
+	docker compose stop
 
 down:
-	docker-compose down -v --remove-orphan
+	docker compose down -v --remove-orphans
 
 clippy:
 	cargo clippy --all-features -- -D warnings
 
 fmt:
 	cargo fmt -- --emit files
+
+token:
+	curl -X POST http://127.0.0.1:6550/oauth/token \
+		-H 'Content-Type: application/json' \
+		-d '{"client_id": "my_name_is"}'

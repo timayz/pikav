@@ -38,7 +38,7 @@ services:
         aliases:
           - eu-west-1b.pikav.internal
 
-  pikav-eu-west-1c:
+  pikav-us-west-1a:
     image: timada0/pikav
     command: serve -c /etc/config/pikav.yml
     ports:
@@ -46,11 +46,11 @@ services:
     depends_on:
       - oathkeeper
     volumes:
-      - ./.docker/pikav/eu-west-1c.yml:/etc/config/pikav.yml
+      - ./.docker/pikav/us-west-1a.yml:/etc/config/pikav.yml
     networks:
       default:
         aliases:
-          - eu-west-1c.pikav.internal
+          - us-west-1a.pikav.internal
 
   pikav-us-west-1a:
     image: timada0/pikav

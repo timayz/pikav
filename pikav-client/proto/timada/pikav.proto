@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package timada;
+
+service Pikav {
+    rpc Publish(PublishRequest) returns (PublishReply) {}
+    rpc Subscribe(SubscribeRequest) returns (SubscribeReply) {}
+    rpc Unsubscribe(UnsubscribeRequest) returns (UnsubscribeReply) {}
+}
+
+message Event {
+    string user_id = 1;
+    string topic = 2;
+    string name = 3;
+    Value data = 4;
+    Value metadata = 5;
+}
+
+message Value {
+    oneof kind {
+        double double_value = 1;
+        float float_value = 2;
+        int32 int32_value = 3;
+        int64 int64_value = 4;
+        uint32 uint32_value = 5;
+        uint64 uint64_value = 6;
+        sint32 sint32_value = 7;
+        sint64 sint64_value = 8;
+        fixed32 fixed32_value = 9;
+        fixed64 fixed64_value = 10;
+        sfixed32 sfixed32_value = 11;
+        sfixed64 sfixed64_value = 12;
+        bool bool_value = 13;
+        string string_value = 14;
+        Struct struct_value = 15;
+        ListValue list_value = 16;
+    }
+}
+
+message Struct {
+    map<string, Value> fields = 1;
+}
+
+message ListValue {
+    repeated Value values = 1;
+}
+
+message PublishRequest {
+    repeated Event events = 1;
+    bool propagate = 2;
+}
+
+message PublishReply {
+    bool success = 1;
+}
+
+message SubscribeRequest {
+    string filter = 1;
+    string user_id = 2;
+    string client_id = 3;
+}
+
+message SubscribeReply {
+    bool success = 1;
+}
+
+message UnsubscribeRequest {
+    string filter = 1;
+    string user_id = 2;
+    string client_id = 3;
+}
+
+message UnsubscribeReply {
+    bool success = 1;
+}

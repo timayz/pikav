@@ -21,37 +21,3 @@ impl FromRequest for Client {
         }
     }
 }
-pub struct PikavInfo(bool);
-
-impl PikavInfo {
-    pub fn is_cluster(&self) -> bool {
-        self.0
-    }
-}
-
-impl FromRequest for PikavInfo {
-    type Error = ActixError;
-    type Future = Ready<Result<Self, Self::Error>>;
-
-    fn from_request(
-        req: &actix_web::HttpRequest,
-        _payload: &mut actix_web::dev::Payload,
-    ) -> Self::Future {
-        let ua = req
-            .headers()
-            .get("user-agent")
-            .and_then(|v| v.to_str().ok());
-
-        let cluster = req
-            .headers()
-            .get("x-pikav-cluster")
-            .and_then(|v| v.to_str().ok());
-
-        let value = match (ua, cluster) {
-            (Some(ua), Some(cluster)) => ua.starts_with("Pikav/") && cluster == "true",
-            _ => false,
-        };
-
-        ok(PikavInfo(value))
-    }
-}
