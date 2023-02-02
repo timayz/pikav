@@ -7,9 +7,9 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pikav-api = { path = "../api" ,version ="0.10.1"}
-pikav-cluster = { path = "../cluster" ,version ="0.10.1"}
-pikav-client = { path = "../pikav-client" ,version ="0.10.1"}
+pikav-api = { path = "../api" ,version ="0.10.2"}
+pikav-cluster = { path = "../cluster" ,version ="0.10.2"}
+pikav-client = { path = "../pikav-client" ,version ="0.10.2"}
 
 config = "0.13.3"
 serde = "1.0.152"
