@@ -18,9 +18,9 @@ pub mod timada {
     tonic::include_proto!("timada");
 }
 
-impl Into<serde_json::Value> for Value {
-    fn into(self) -> serde_json::Value {
-        match self.kind {
+impl From<Value> for serde_json::Value {
+    fn from(value: Value) -> Self {
+        match value.kind {
             Some(kind) => match kind {
                 Kind::DoubleValue(value) => serde_json::value::Number::from_f64(value)
                     .map(serde_json::Value::Number)
