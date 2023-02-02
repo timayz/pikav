@@ -3,12 +3,14 @@ use error::ClientError;
 use parking_lot::RwLock;
 use serde::Deserialize;
 use serde_json::Map;
-use std::{sync::Arc, time::Duration};
-use timada::{pikav_client::PikavClient, PublishRequest};
+use std::{collections::HashMap, sync::Arc, time::Duration};
+use timada::{pikav_client::PikavClient, PublishRequest, SubscribeReply, UnsubscribeReply};
 use tonic::transport::Channel;
 use tracing::error;
+use url::Url;
 
-pub use timada::{value::Kind, Event, ListValue, Value};
+pub use timada::{value::Kind, Event, ListValue, SubscribeRequest, UnsubscribeRequest, Value};
+pub use tonic::Status;
 
 mod error;
 
@@ -93,6 +95,7 @@ pub struct Client {
     channel: Channel,
     queue: Arc<RwLock<Vec<Event>>>,
     namespace: Option<String>,
+    pub same_region: bool,
 }
 
 impl Client {
@@ -125,14 +128,25 @@ impl Client {
     }
 
     fn new_instance(options: ClientInstanceOptions) -> Result<Self, ClientError> {
+        let parsed_url =
+            Url::parse(options.url.as_str()).map_err(|e| ClientError::Unknown(e.to_string()))?;
+
+        let query: HashMap<_, _> = parsed_url.query_pairs().into_owned().collect();
+
         let channel = Channel::from_shared(options.url.to_owned())
             .map_err(|e| ClientError::Unknown(e.to_string()))?
             .connect_lazy();
+
+        let same_region = query
+            .get("same_region")
+            .map(|r| r == "true")
+            .unwrap_or(false);
 
         let client = Self {
             channel,
             queue: Arc::new(RwLock::new(Vec::new())),
             namespace: options.namespace,
+            same_region,
         };
 
         Self::spawn_queue(client.clone());
@@ -198,5 +212,27 @@ impl Client {
     pub fn publish(&self, events: Vec<Event>) {
         let mut queue = self.queue.write();
         queue.extend(events);
+    }
+
+    pub async fn subscribe(
+        &self,
+        message: SubscribeRequest,
+    ) -> Result<tonic::Response<SubscribeReply>, Status> {
+        let mut client = PikavClient::new(self.channel.clone());
+
+        let request = tonic::Request::new(message);
+
+        client.subscribe(request).await
+    }
+
+    pub async fn unsubscribe(
+        &self,
+        message: UnsubscribeRequest,
+    ) -> Result<tonic::Response<UnsubscribeReply>, Status> {
+        let mut client = PikavClient::new(self.channel.clone());
+
+        let request = tonic::Request::new(message);
+
+        client.unsubscribe(request).await
     }
 }

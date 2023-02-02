@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use pikav::{topic::TopicName, Event, PubEvent};
+use pikav::{topic::{TopicName, TopicFilter}, Event, PubEvent, SubscribeOptions};
 use pikav_client::{
     timada::{
         pikav_server::PikavServer, PublishReply, PublishRequest, SubscribeReply, SubscribeRequest,
@@ -56,15 +56,45 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
 
     async fn subscribe(
         &self,
-        _request: Request<SubscribeRequest>,
+        request: Request<SubscribeRequest>,
     ) -> Result<Response<SubscribeReply>, Status> {
+        let req = request.into_inner();
+
+        let filter = match TopicFilter::new(req.filter) {
+            Ok(filter) => filter,
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
+        };
+
+        self.pikav
+            .subscribe(SubscribeOptions {
+                filter,
+                user_id: req.user_id,
+                client_id: req.client_id,
+            })
+            .ok();
+
         Ok(Response::new(SubscribeReply { success: true }))
     }
 
     async fn unsubscribe(
         &self,
-        _request: Request<UnsubscribeRequest>,
+        request: Request<UnsubscribeRequest>,
     ) -> Result<Response<UnsubscribeReply>, Status> {
+        let req = request.into_inner();
+
+        let filter = match TopicFilter::new(req.filter) {
+            Ok(filter) => filter,
+            Err(e) => return Err(Status::invalid_argument(e.to_string())),
+        };
+
+        self.pikav
+            .unsubscribe(SubscribeOptions {
+                filter,
+                user_id: req.user_id,
+                client_id: req.client_id,
+            })
+            .ok();
+
         Ok(Response::new(UnsubscribeReply { success: true }))
     }
 }

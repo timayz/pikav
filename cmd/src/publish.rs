@@ -28,7 +28,7 @@ impl Publish {
     pub async fn run(&self) -> Result<(), std::io::Error> {
         let client = Client::new(ClientOptions {
             url: format!("http://{}", self.addr.cluster.to_owned()),
-            namespace: "default",
+            namespace: "_",
         })
         .unwrap();
 

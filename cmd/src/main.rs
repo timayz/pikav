@@ -1,11 +1,11 @@
-mod serve;
 mod publish;
+mod serve;
 
 use clap::{arg, Command};
-use serve::Serve;
 use publish::Publish;
+use serve::Serve;
 
-fn cli() -> Command<'static> {
+fn cli() -> Command {
     Command::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .subcommand(
@@ -26,7 +26,11 @@ async fn main() {
 
     match matches.subcommand() {
         Some(("serve", sub_matches)) => {
-            let s = match Serve::new(sub_matches.value_of("config").unwrap_or_default()) {
+            let s = match Serve::new(
+                sub_matches
+                    .get_one::<String>("config")
+                    .unwrap_or(&"".to_owned()),
+            ) {
                 Ok(s) => s,
                 Err(e) => panic!("{e}"),
             };
@@ -36,7 +40,11 @@ async fn main() {
             }
         }
         Some(("publish", sub_matches)) => {
-            let p = match Publish::new(sub_matches.value_of("config").unwrap_or_default()) {
+            let p = match Publish::new(
+                sub_matches
+                    .get_one::<String>("config")
+                    .unwrap_or(&"".to_owned()),
+            ) {
                 Ok(s) => s,
                 Err(e) => panic!("{e}"),
             };

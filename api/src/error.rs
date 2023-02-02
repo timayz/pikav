@@ -60,3 +60,9 @@ impl From<pikav::Error> for ApiError {
         ApiError::NotFound
     }
 }
+
+impl From<pikav_client::Status> for ApiError {
+    fn from(e: pikav_client::Status) -> Self {
+        ApiError::InternalServerError(e.to_string())
+    }
+}
