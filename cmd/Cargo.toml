@@ -6,6 +6,12 @@ publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.release]
+codegen-units = 1
+panic = "abort"
+lto = true
+strip = true
+
 [dependencies]
 pikav-api = { path = "../api" }
 pikav-cluster = { path = "../cluster" }

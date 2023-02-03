@@ -6,7 +6,6 @@ cors:
   permissive: true
 
 jwks:
-  enable: false
   url: http://127.0.0.1:6550/.well-known/jwks.json
 
 nodes:
