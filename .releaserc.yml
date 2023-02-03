@@ -5,6 +5,8 @@ plugins:
   - "@semantic-release/commit-analyzer"
   - "@semantic-release/release-notes-generator"
   - "@semantic-release/github"
+  - path: "@semantic-release/exec"
+    prepareCmd: "export DOCKER_CONTENT_TRUST=1 && docker pull rust@sha256:9178d58b0f144a93b1dba5317d55ef32e42c67d8da71aa63ff56a4bc66f9a888"
   - "@timada/semantic-release-cargo"
   - path: "@semantic-release/exec"
     prepareCmd: "cargo update"
