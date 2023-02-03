@@ -2,12 +2,12 @@ use actix_jwks::{JwksClient, JwtPayload};
 use actix_web::{
     delete, get, post, put, rt::time::sleep, web, App, HttpResponse, HttpServer, Responder,
 };
-use pikav_client::{timada::Struct, Event, Kind, Value};
+use pikav_client::Event;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::sqlite::SqlitePool;
-use std::{collections::HashMap, time::Duration};
+use std::{time::Duration};
 
 #[derive(Clone, Debug, Serialize, sqlx::FromRow)]
 pub struct Todo {
@@ -70,46 +70,19 @@ async fn create(
 
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
-        // client.publish(vec![pikav_client::Event::new(
-        //     jwt_payload.subject,
-        //     format!("todos/{}", id),
-        //     "Created",
-        //     ReadTodo {
-        //         done: false,
-        //         id,
-        //         text: input.text.to_owned(),
-        //     },
-        // )
-        // .unwrap()]);
-
         client.publish(vec![Event {
             user_id: jwt_payload.subject,
             topic: format!("todos/{id}"),
             name: "Created".to_owned(),
-            data: Some(pikav_client::Value {
-                kind: Some(Kind::StructValue(Struct {
-                    fields: HashMap::from([
-                        (
-                            "id".to_owned(),
-                            Value {
-                                kind: Some(Kind::Int64Value(id)),
-                            },
-                        ),
-                        (
-                            "text".to_owned(),
-                            Value {
-                                kind: Some(Kind::StringValue(input.text.to_owned())),
-                            },
-                        ),
-                        (
-                            "done".to_owned(),
-                            Value {
-                                kind: Some(Kind::BoolValue(false)),
-                            },
-                        ),
-                    ]),
-                })),
-            }),
+            data: Some(
+                serde_json::to_value(ReadTodo {
+                    done: false,
+                    id,
+                    text: input.text.to_owned(),
+                })
+                .unwrap()
+                .into(),
+            ),
             metadata: None,
         }]);
     });
@@ -151,46 +124,19 @@ async fn update(
 
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
-        // client.publish(vec![pikav_client::Event::new(
-        //     jwt_payload.subject,
-        //     format!("todos/{}", id),
-        //     "Updated",
-        //     ReadTodo {
-        //         id: id.to_owned(),
-        //         text: input.text.to_owned(),
-        //         done: input.done,
-        //     },
-        // )
-        // .unwrap()]);
-
         client.publish(vec![Event {
             user_id: jwt_payload.subject,
             topic: format!("todos/{id}"),
             name: "Updated".to_owned(),
-            data: Some(pikav_client::Value {
-                kind: Some(Kind::StructValue(Struct {
-                    fields: HashMap::from([
-                        (
-                            "id".to_owned(),
-                            Value {
-                                kind: Some(Kind::Int64Value(id.to_owned())),
-                            },
-                        ),
-                        (
-                            "text".to_owned(),
-                            Value {
-                                kind: Some(Kind::StringValue(input.text.to_owned())),
-                            },
-                        ),
-                        (
-                            "done".to_owned(),
-                            Value {
-                                kind: Some(Kind::BoolValue(input.done)),
-                            },
-                        ),
-                    ]),
-                })),
-            }),
+            data: Some(
+                serde_json::to_value(ReadTodo {
+                    id: id.to_owned(),
+                    text: input.text.to_owned(),
+                    done: input.done,
+                })
+                .unwrap()
+                .into(),
+            ),
             metadata: None,
         }]);
     });
@@ -223,30 +169,16 @@ async fn delete(
 
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
-        // client.publish(vec![pikav_client::Event::new(
-        //     jwt_payload.subject,
-        //     format!("todos/{}", id),
-        //     "Deleted",
-        //     json!({
-        //         "id": id.to_owned()
-        //     }),
-        // )
-        // .unwrap()]);
-
         client.publish(vec![Event {
             user_id: jwt_payload.subject,
             topic: format!("todos/{id}"),
             name: "Deleted".to_owned(),
-            data: Some(pikav_client::Value {
-                kind: Some(Kind::StructValue(Struct {
-                    fields: HashMap::from([(
-                        "id".to_owned(),
-                        Value {
-                            kind: Some(Kind::Int64Value(id.to_owned())),
-                        },
-                    )]),
-                })),
-            }),
+            data: Some(
+                json!({
+                    "id": id.to_owned()
+                })
+                .into(),
+            ),
             metadata: None,
         }]);
     });
