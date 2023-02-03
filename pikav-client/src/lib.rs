@@ -4,7 +4,7 @@ use parking_lot::RwLock;
 use serde::Deserialize;
 use serde_json::Map;
 use std::{collections::HashMap, sync::Arc, time::Duration};
-use timada::{pikav_client::PikavClient, PublishRequest, SubscribeReply, UnsubscribeReply};
+use timada::{pikav_client::PikavClient, PublishRequest, Struct, SubscribeReply, UnsubscribeReply};
 use tonic::transport::Channel;
 use tracing::error;
 use url::Url;
@@ -74,6 +74,57 @@ impl From<Value> for serde_json::Value {
                 }
             },
             None => serde_json::Value::Null,
+        }
+    }
+}
+
+impl From<serde_json::Value> for Value {
+    fn from(value: serde_json::Value) -> Self {
+        match value {
+            serde_json::Value::Null => Value { kind: None },
+            serde_json::Value::Bool(v) => Value {
+                kind: Some(Kind::BoolValue(v)),
+            },
+            serde_json::Value::Number(v) => {
+                if let Some(v) = v.as_f64() {
+                    return Value {
+                        kind: Some(Kind::DoubleValue(v)),
+                    };
+                }
+
+                if let Some(v) = v.as_i64() {
+                    return Value {
+                        kind: Some(Kind::Int64Value(v)),
+                    };
+                }
+
+                if let Some(v) = v.as_u64() {
+                    return Value {
+                        kind: Some(Kind::Uint64Value(v)),
+                    };
+                }
+
+                Value { kind: None }
+            }
+            serde_json::Value::String(v) => Value {
+                kind: Some(Kind::StringValue(v)),
+            },
+            serde_json::Value::Array(values) => Value {
+                kind: Some(Kind::ListValue(ListValue {
+                    values: values.into_iter().map(|v| v.into()).collect(),
+                })),
+            },
+            serde_json::Value::Object(v) => {
+                let mut fields = HashMap::new();
+
+                for (key, value) in &v {
+                    fields.insert(key.to_owned(), value.clone().into());
+                }
+
+                Value {
+                    kind: Some(Kind::StructValue(Struct { fields })),
+                }
+            }
         }
     }
 }

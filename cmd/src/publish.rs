@@ -1,8 +1,8 @@
-use std::{collections::HashMap, time::Duration};
-
 use config::{Config, ConfigError, Environment, File};
-use pikav_client::{timada::Struct, Client, ClientOptions, Event, Kind, Value};
+use pikav_client::{Client, ClientOptions, Event};
 use serde::Deserialize;
+use serde_json::json;
+use std::time::Duration;
 
 #[derive(Debug, Deserialize)]
 pub struct PublishAddr {
@@ -36,32 +36,14 @@ impl Publish {
             user_id: "hubert@client".to_owned(),
             topic: "todo/1".to_owned(),
             name: "created".to_owned(),
-            data: Some(pikav_client::Value {
-                kind: Some(Kind::StructValue(Struct {
-                    fields: HashMap::from([
-                        (
-                            "id".to_owned(),
-                            Value {
-                                kind: Some(Kind::Int32Value(1)),
-                            },
-                        ),
-                        (
-                            "text".to_owned(),
-                            Value {
-                                kind: Some(Kind::StringValue(
-                                    "I don't want to work for somebody else".to_owned(),
-                                )),
-                            },
-                        ),
-                        (
-                            "done".to_owned(),
-                            Value {
-                                kind: Some(Kind::BoolValue(true)),
-                            },
-                        ),
-                    ]),
-                })),
-            }),
+            data: Some(
+                json!({
+                    "id": 1,
+                    "text": "I don't want to work for somebody else",
+                    "done": true
+                })
+                .into(),
+            ),
             metadata: None,
         }]);
 
