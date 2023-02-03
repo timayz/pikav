@@ -7,7 +7,7 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::sqlite::SqlitePool;
-use std::{time::Duration};
+use std::time::Duration;
 
 #[derive(Clone, Debug, Serialize, sqlx::FromRow)]
 pub struct Todo {
