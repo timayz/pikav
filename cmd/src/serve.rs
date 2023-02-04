@@ -4,16 +4,6 @@ use pikav_cluster::{Cluster, ClusterOptions};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct ServeCors {
-    pub permissive: bool,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ServeJwks {
-    pub url: String,
-}
-
-#[derive(Debug, Deserialize)]
 pub struct ServeAddr {
     pub api: String,
     pub cluster: String,
