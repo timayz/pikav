@@ -60,4 +60,4 @@ USER pikav:pikav
 EXPOSE 6750 6751
 
 ENTRYPOINT [ "pikav" ]
-CMD ["serve"]
+CMD ["serve", "-c", "/etc/pikav/config.yml"]
