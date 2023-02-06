@@ -1,7 +1,10 @@
+use std::str::FromStr;
+
 use config::{Config, ConfigError, Environment, File};
 use pikav_api::{client::Client, App, AppCors, AppJwks, AppOptions, Pikav};
 use pikav_cluster::{Cluster, ClusterOptions};
 use serde::Deserialize;
+use tracing::Level;
 
 #[derive(Debug, Deserialize)]
 pub struct ServeAddr {
@@ -15,6 +18,7 @@ pub struct Serve {
     pub cors: Option<AppCors>,
     pub jwks: AppJwks,
     pub nodes: Vec<String>,
+    pub log: Option<String>,
 }
 
 impl Serve {
@@ -28,6 +32,18 @@ impl Serve {
     }
 
     pub async fn run(&self) -> Result<(), std::io::Error> {
+        let subscriber = tracing_subscriber::FmtSubscriber::builder()
+            .with_max_level(
+                self.log
+                    .as_ref()
+                    .map(|log| Level::from_str(log).expect("failed to deserialize log"))
+                    .unwrap_or(Level::ERROR),
+            )
+            .finish();
+
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("setting default subscriber failed");
+
         let nodes = match Client::from_vec(self.nodes.clone()) {
             Ok(nodes) => nodes,
             Err(e) => panic!("{e:?}"),

@@ -1,0 +1,11 @@
+addr:
+  api: "0.0.0.0:6750"
+  cluster: "[::1]:6751"
+
+cors:
+  permissive: true
+
+jwks:
+  url: http://fake-jwt-auth-server/.well-known/jwks.json
+
+nodes: []

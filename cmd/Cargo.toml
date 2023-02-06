@@ -6,12 +6,6 @@ publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[profile.release]
-codegen-units = 1
-panic = "abort"
-lto = true
-strip = true
-
 [dependencies]
 pikav-api = { path = "../api" }
 pikav-cluster = { path = "../cluster" }
@@ -22,3 +16,5 @@ serde = "1.0.152"
 serde_json = "1.0.91"
 clap = "4.1.4"
 actix-rt = "2.8.0"
+tracing = "0.1.37"
+tracing-subscriber = "0.3.16"

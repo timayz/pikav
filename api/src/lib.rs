@@ -2,6 +2,8 @@ mod error;
 
 pub mod extractor;
 
+use std::io::Error;
+
 use actix_cors::Cors;
 use actix_jwks::{JwksClient, JwtPayload};
 use actix_web::{
@@ -137,8 +139,16 @@ impl App {
             .map(|cors| cors.permissive)
             .unwrap_or_default();
 
-        let jwks_client = JwksClient::new(self.options.jwks.url.to_owned());
+        let jwks_client = JwksClient::new(self.options.jwks.url.to_owned())
+            .await
+            .map_err(|e| Error::new(std::io::ErrorKind::Other, e))?;
+
         let nodes = self.options.nodes.clone();
+
+        println!(
+            "Pikav api server listening on {}",
+            self.options.listen.to_owned()
+        );
 
         HttpServer::new(move || {
             ActixApp::new()

@@ -6,3 +6,18 @@ services:
     container_name: fake-jwt-auth-server
     ports:
       - 6550:80
+
+  pikav:
+    build: .
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.pikav.rule=Host(`pikav.localhost`)"
+    #   - "traefik.http.routers.pikav.tls=true"
+    #   - "traefik.http.routers.pikav.entrypoints=https"
+    depends_on:
+      - fake-jwt-auth-server
+    ports:
+      - "6750:6750"
+      - "6751:6751"
+    volumes:
+      - ./eu-west-1a.yml:/etc/pikav/config.yml
