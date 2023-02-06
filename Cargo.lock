@@ -472,7 +472,7 @@ dependencies = [
 
 [[package]]
 name = "cmd"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "actix-rt",
  "clap",
@@ -663,7 +663,7 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
 name = "example"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "actix-jwks",
  "actix-web",
@@ -1432,7 +1432,7 @@ dependencies = [
 
 [[package]]
 name = "pikav"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "lazy_static",
  "nanoid",
@@ -1446,7 +1446,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-api"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "actix-cors",
  "actix-jwks",
@@ -1465,7 +1465,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-client"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "actix-rt",
  "parking_lot 0.12.1",
@@ -1483,7 +1483,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-cluster"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "bytes",
  "pikav",
