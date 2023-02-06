@@ -6,3 +6,15 @@ services:
     container_name: fake-jwt-auth-server
     ports:
       - 6550:80
+
+  pikav:
+    image: timada0/pikav
+    profiles:
+      - standalone
+    depends_on:
+      - fake-jwt-auth-server
+    ports:
+      - "6750:6750"
+      - "6751:6751"
+    volumes:
+      - ./configs/standalone.yml:/etc/pikav/config.yml
