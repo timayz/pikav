@@ -1,6 +1,6 @@
 addr:
   api: "0.0.0.0:6750"
-  cluster: "[::1]:6751"
+  cluster: "0.0.0.0:6751"
 
 cors:
   permissive: true

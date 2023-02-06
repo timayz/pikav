@@ -8,16 +8,13 @@ services:
       - 6550:80
 
   pikav:
-    build: .
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.http.routers.pikav.rule=Host(`pikav.localhost`)"
-    #   - "traefik.http.routers.pikav.tls=true"
-    #   - "traefik.http.routers.pikav.entrypoints=https"
+    image: timada0/pikav
+    profiles:
+      - standalone
     depends_on:
       - fake-jwt-auth-server
     ports:
       - "6750:6750"
       - "6751:6751"
     volumes:
-      - ./eu-west-1a.yml:/etc/pikav/config.yml
+      - ./configs/standalone.yml:/etc/pikav/config.yml

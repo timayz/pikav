@@ -1,6 +1,6 @@
 addr:
   api: "0.0.0.0:6770"
-  cluster: "[::1]:6771"
+  cluster: "0.0.0.0:6771"
 
 cors:
   permissive: true
@@ -9,5 +9,5 @@ jwks:
   url: http://127.0.0.1:6550/.well-known/jwks.json
 
 nodes:
-  - http://[::1]:6751
-  - http://[::1]:6761
+  - http://127.0.0.1:6751
+  - http://127.0.0.1:6761
