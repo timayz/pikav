@@ -3,6 +3,6 @@ on: pull_request
 
 jobs:
   rust:
-    uses: timada-org/.github/.github/workflows/rust-testing.yml@v2.14.0
+    uses: timada-org/.github/.github/workflows/rust-testing.yml@fix/rust/testing-matrix
     secrets:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
