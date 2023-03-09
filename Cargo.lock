@@ -1467,7 +1467,6 @@ dependencies = [
 name = "pikav-client"
 version = "0.12.2"
 dependencies = [
- "actix-rt",
  "parking_lot 0.12.1",
  "prost",
  "prost-derive",
@@ -1475,6 +1474,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "tokio",
  "tonic",
  "tonic-build",
  "tracing",

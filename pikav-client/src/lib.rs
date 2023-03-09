@@ -1,4 +1,4 @@
-use actix_rt::time::{interval_at, sleep, Instant};
+use tokio::time::{interval_at, sleep, Instant};
 use error::ClientError;
 use parking_lot::RwLock;
 use serde::Deserialize;
@@ -206,7 +206,7 @@ impl Client {
     }
 
     fn spawn_queue(me: Self) {
-        actix_rt::spawn(async move {
+        tokio::spawn(async move {
             let mut interval = interval_at(Instant::now(), Duration::from_millis(300));
 
             loop {
