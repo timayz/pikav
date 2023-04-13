@@ -23,13 +23,16 @@ demo:
 _demo: demo.eu-west-1a demo.eu-west-1b demo.us-west-1a
 
 demo.eu-west-1a:
-	PORT=3001 PIKAV_PORT=6751 cargo run --bin example
+	cd example
+	LEPTOS_SITE_ADDR=127.0.0.1:3001 LEPTOS_RELOAD_PORT=3011 PIKAV_PORT=6751 cargo leptos watch
 
 demo.eu-west-1b:
-	PORT=3002 PIKAV_PORT=6761 cargo run --bin example
+	cd example
+	LEPTOS_SITE_ADDR=127.0.0.1:3002 LEPTOS_RELOAD_PORT=3022 PIKAV_PORT=6761 cargo leptos watch
 
 demo.us-west-1a:
-	PORT=3003 PIKAV_PORT=6771 cargo run --bin example
+	cd example
+	LEPTOS_SITE_ADDR=127.0.0.1:3003 LEPTOS_RELOAD_PORT=3033 PIKAV_PORT=6771 cargo leptos watch
 
 pub.eu-west-1a:
 	cargo run --bin cmd publish -c configs/eu-west-1a
