@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 cfg_if! {
 if #[cfg(feature = "ssr")] {
     use sqlx::sqlite::SqlitePool;
-    use actix_jwks::JwtPayload;
     use actix_web::{FromRequest, HttpRequest, rt::time::sleep};
     use rand::Rng;
     use pikav_client::Event;
@@ -54,16 +53,8 @@ if #[cfg(feature = "ssr")] {
 }
 
 #[server(GetTodos, "/api")]
-pub async fn get_todos(cx: Scope) -> Result<Vec<ReadTodo>, ServerFnError> {
+pub async fn get_todos(cx: Scope, user_id: String) -> Result<Vec<ReadTodo>, ServerFnError> {
     let req = use_context::<HttpRequest>(cx).unwrap();
-    // let jwt_payload = JwtPayload::extract(&req)
-    //     .await
-    //     .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
-    let jwt_payload = JwtPayload {
-        subject: "yolo".into(),
-        token: "val".into(),
-        payload: "val".into(),
-    };
     let pool = actix_web::web::Data::<SqlitePool>::extract(&req)
         .await
         .unwrap();
@@ -76,7 +67,7 @@ FROM todos
 WHERE user_id = ?1
         "#,
     )
-    .bind(jwt_payload.subject)
+    .bind(user_id)
     .fetch_all(&mut conn)
     .await
     .unwrap();
@@ -85,19 +76,11 @@ WHERE user_id = ?1
 }
 
 #[server(CreateTodo, "/api")]
-async fn create_todo(cx: Scope, text: String) -> Result<(), ServerFnError> {
+async fn create_todo(cx: Scope, user_id: String, text: String) -> Result<(), ServerFnError> {
     let req = use_context::<HttpRequest>(cx).unwrap();
     let client = actix_web::web::Data::<pikav_client::Client>::extract(&req)
         .await
         .unwrap();
-    // let jwt_payload = JwtPayload::extract(&req)
-    //     .await
-    //     .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
-    let jwt_payload = JwtPayload {
-        subject: "yolo".into(),
-        token: "val".into(),
-        payload: "val".into(),
-    };
     let pool = actix_web::web::Data::<SqlitePool>::extract(&req)
         .await
         .unwrap();
@@ -105,7 +88,7 @@ async fn create_todo(cx: Scope, text: String) -> Result<(), ServerFnError> {
 
     let id = sqlx::query("INSERT INTO todos ( text, user_id ) VALUES ( ?1, ?2 )")
         .bind(text.to_owned())
-        .bind(jwt_payload.subject.to_owned())
+        .bind(user_id.to_owned())
         .execute(&mut conn)
         .await
         .unwrap()
@@ -117,7 +100,7 @@ async fn create_todo(cx: Scope, text: String) -> Result<(), ServerFnError> {
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
         client.publish(vec![Event {
-            user_id: jwt_payload.subject,
+            user_id,
             topic: format!("todos/{id}"),
             name: "Created".to_owned(),
             data: Some(
@@ -137,26 +120,19 @@ async fn create_todo(cx: Scope, text: String) -> Result<(), ServerFnError> {
 }
 
 #[server(DeleteTodo, "/api")]
-async fn delete_todo(cx: Scope, id: i64) -> Result<(), ServerFnError> {
+async fn delete_todo(cx: Scope, user_id: String, id: i64) -> Result<(), ServerFnError> {
     let req = use_context::<HttpRequest>(cx).unwrap();
     let client = actix_web::web::Data::<pikav_client::Client>::extract(&req)
         .await
         .unwrap();
-    // let jwt_payload = JwtPayload::extract(&req)
-    //     .await
-    //     .map_err(|e| ServerFnError::ServerError(e.to_string()))?;
-    let jwt_payload = JwtPayload {
-        subject: "yolo".into(),
-        token: "val".into(),
-        payload: "val".into(),
-    };
     let pool = actix_web::web::Data::<SqlitePool>::extract(&req)
         .await
         .unwrap();
     let mut conn = pool.acquire().await.unwrap();
 
-    let rows_affected = sqlx::query("DELETE FROM todos WHERE id = ?1")
+    let rows_affected = sqlx::query("DELETE FROM todos WHERE id = ?1 AND user_id = ?2")
         .bind(id.to_owned())
+        .bind(user_id.to_owned())
         .execute(&mut conn)
         .await
         .unwrap()
@@ -172,7 +148,7 @@ async fn delete_todo(cx: Scope, id: i64) -> Result<(), ServerFnError> {
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
         client.publish(vec![Event {
-            user_id: jwt_payload.subject,
+            user_id,
             topic: format!("todos/{id}"),
             name: "Deleted".to_owned(),
             data: Some(
@@ -217,9 +193,19 @@ pub fn App(cx: Scope) -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage(cx: Scope) -> impl IntoView {
+    let query = use_query_map(cx);
+    let user_id = move || {
+        query
+            .with(|params| params.get("user").cloned())
+            .unwrap_or("john".to_owned())
+    };
     let create_todo = create_server_multi_action::<CreateTodo>(cx);
     let delete_todo = create_server_action::<DeleteTodo>(cx);
-    let todos = create_resource(cx, || (), move |_| get_todos(cx));
+    let todos = create_resource(
+        cx,
+        move || (user_id()),
+        move |user_id| get_todos(cx, user_id),
+    );
 
     view! { cx,
         <h1>"Welcome to Pikav!"</h1>
@@ -228,6 +214,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
             <label>
                 "Add a Todo"
                 <input type="text" name="text" />
+                <input type="hidden" name="user_id" value={user_id()} />
             </label>
             <input type="submit" value="Create" />
         </MultiActionForm>
@@ -242,6 +229,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
                                 <li>
                                     {&todo.text}
                                     <ActionForm action=delete_todo>
+                                        <input type="hidden" name="user_id" value={user_id()} />
                                         <input type="hidden" name="id" value={todo.id} />
                                         <button type="submit">"X"</button>
                                     </ActionForm>

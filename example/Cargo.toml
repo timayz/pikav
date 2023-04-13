@@ -14,7 +14,6 @@ lto = true
 pikav-client = { path = "../pikav-client", optional = true }
 actix-files = { version = "0.6", optional = true }
 actix-web = { version = "4", optional = true, features = ["macros"] }
-actix-jwks = { version = "0.1.1", optional = true }
 console_error_panic_hook = "0.1"
 console_log = "1"
 cfg-if = "1"
@@ -38,7 +37,6 @@ hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
 ssr = [
   "dep:actix-files",
   "dep:actix-web",
-  "dep:actix-jwks",
   "dep:leptos_actix",
   "dep:sqlx",
   "dep:rand",

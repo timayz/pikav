@@ -2,16 +2,11 @@
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
-    use actix_jwks::JwksClient;
     use actix_web::*;
     use example::app::*;
     use leptos::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use sqlx::sqlite::SqlitePool;
-
-    let jwks_client = JwksClient::new("http://127.0.0.1:6550/.well-known/jwks.json")
-        .await
-        .unwrap();
 
     let pikv_client = pikav_client::Client::new(pikav_client::ClientOptions {
         url: format!("http://127.0.0.1:{}", std::env::var("PIKAV_PORT").unwrap()),
@@ -38,7 +33,6 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(web::Data::new(pool.to_owned()))
-            .app_data(web::Data::new(jwks_client.to_owned()))
             .app_data(web::Data::new(pikv_client.to_owned()))
             .route("/api/{tail:.*}", leptos_actix::handle_server_fns())
             .leptos_routes(
