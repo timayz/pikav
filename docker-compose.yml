@@ -9,8 +9,6 @@ services:
 
   pikav:
     image: timada0/pikav
-    profiles:
-      - standalone
     depends_on:
       - fake-jwt-auth-server
     ports:
