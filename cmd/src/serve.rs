@@ -16,7 +16,7 @@ pub struct ServeAddr {
 pub struct Serve {
     pub addr: ServeAddr,
     pub cors: Option<AppCors>,
-    pub jwks: AppJwks,
+    pub jwks: Option<AppJwks>,
     pub nodes: Vec<String>,
     pub log: Option<String>,
 }
