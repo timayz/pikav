@@ -1,5 +1,5 @@
 use cfg_if::cfg_if;
-use leptos::{*, leptos_dom::console_log};
+use leptos::{leptos_dom::console_log, *};
 use leptos_meta::*;
 use leptos_router::*;
 use serde::{Deserialize, Serialize};
@@ -210,11 +210,11 @@ fn HomePage(cx: Scope) -> impl IntoView {
     #[cfg(not(feature = "ssr"))]
     {
         use pikav_web::Client;
+        use std::time::Duration;
 
         if let Ok(e) = Client::new("http://127.0.0.1:6750/events") {
-            console_log(&format!("{e:?}"));
+            set_timeout(move || console_log(&format!("{e:?}")), Duration::from_secs(5))
         }
-
     }
 
     view! { cx,

@@ -18,3 +18,4 @@ gloo-net = { git = "https://github.com/rustwasm/gloo" }
 serde = { version = "1.0.160", features = ["derive"] }
 futures = "0.3.28"
 wasm-bindgen-futures = "0.4.34"
+log = "0.4.17"

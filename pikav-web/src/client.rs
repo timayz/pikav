@@ -4,6 +4,7 @@ use anyhow::Result;
 use futures::{Stream, TryStreamExt, StreamExt};
 use gloo_net::eventsource::futures::EventSource;
 use wasm_bindgen_futures::spawn_local;
+use log::debug;
 // use pikav::topic::TopicFilter;
 
 #[derive(Clone, Debug)]
@@ -22,10 +23,10 @@ impl Client {
 
         spawn_local(async move {
             while let Some(Ok((event_type, msg))) = stream.next().await {
-                // console_log!(format!("1. {}: {:?}", event_type, msg))
-                println!("yes");
+                debug!("1. {}: {:?}", event_type, msg);
+                // debug!("yes");
             }
-            // console_log!("EventSource Closed");
+            debug!("EventSource Closed");
         });
 
         Ok(Self {
