@@ -1,10 +1,10 @@
 use std::{borrow::BorrowMut, collections::HashMap, sync::Arc};
 
 use anyhow::Result;
-use futures::{Stream, TryStreamExt, StreamExt};
+use futures::{Stream, StreamExt, TryStreamExt};
 use gloo_net::eventsource::futures::EventSource;
-use wasm_bindgen_futures::spawn_local;
 use log::debug;
+use wasm_bindgen_futures::spawn_local;
 // use pikav::topic::TopicFilter;
 
 #[derive(Clone, Debug)]
@@ -23,7 +23,7 @@ impl Client {
 
         spawn_local(async move {
             while let Some(Ok((event_type, msg))) = stream.next().await {
-                debug!("1. {}: {:?}", event_type, msg);
+                debug!("1. {}: {:?}", event_type, msg.data().as_string());
                 // debug!("yes");
             }
             debug!("EventSource Closed");
@@ -47,5 +47,9 @@ impl Client {
         self.namespace = Some(v.into());
 
         self
+    }
+
+    pub fn close(&self) {
+        self.source.clone().close();
     }
 }

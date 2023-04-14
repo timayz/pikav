@@ -207,14 +207,16 @@ fn HomePage(cx: Scope) -> impl IntoView {
         move |user_id| get_todos(cx, user_id),
     );
 
-    #[cfg(not(feature = "ssr"))]
-    {
+    cfg_if! {
+    if #[cfg(feature = "hydrate")] {
+
         use pikav_web::Client;
         use std::time::Duration;
 
-        if let Ok(e) = Client::new("http://127.0.0.1:6750/events") {
-            set_timeout(move || console_log(&format!("{e:?}")), Duration::from_secs(5))
-        }
+        let client = Client::new("http://127.0.0.1:6750/events").unwrap();
+
+        on_cleanup(cx, move || client.close());
+    }
     }
 
     view! { cx,
