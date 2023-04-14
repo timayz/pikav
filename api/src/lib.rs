@@ -110,12 +110,11 @@ pub struct AppCors {
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppJwks {
     pub url: String,
-    pub insecure: Option<bool>,
 }
 
 pub struct AppOptions {
     pub listen: String,
-    pub jwks: AppJwks,
+    pub jwks: Option<AppJwks>,
     pub cors: Option<AppCors>,
     pub pikav: Pikav<Bytes>,
     pub nodes: Vec<client::Client>,
@@ -140,10 +139,10 @@ impl App {
             .map(|cors| cors.permissive)
             .unwrap_or_default();
 
-        let jwks_client = JwksClient::new(self.options.jwks.url.to_owned())
-            .await
-            .map_err(|e| Error::new(std::io::ErrorKind::Other, e))?
-            .set_insecure(self.options.jwks.insecure.unwrap_or_default());
+        let jwks_client =
+            JwksClient::build(self.options.jwks.as_ref().map(|jwks| jwks.url.to_owned()))
+                .await
+                .map_err(|e| Error::new(std::io::ErrorKind::Other, e))?;
 
         let nodes = self.options.nodes.clone();
 

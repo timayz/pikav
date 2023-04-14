@@ -94,9 +94,9 @@ dependencies = [
 
 [[package]]
 name = "actix-jwks"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75fe068d17fde6a2bc52141d837bca3f7e884f5998e153ad3cc4bca7b846cc0f"
+checksum = "0f3074f4a308d97ef8963c8d693dfa0d40439d360dbcd3c5438d9555574b018c"
 dependencies = [
  "actix-web",
  "base64 0.21.0",
@@ -1530,7 +1530,7 @@ name = "pikav-api"
 version = "0.13.0"
 dependencies = [
  "actix-cors",
- "actix-jwks 0.2.0",
+ "actix-jwks 0.2.1",
  "actix-web",
  "futures-core",
  "futures-util",
