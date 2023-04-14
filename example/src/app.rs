@@ -1,5 +1,5 @@
 use cfg_if::cfg_if;
-use leptos::*;
+use leptos::{*, leptos_dom::console_log};
 use leptos_meta::*;
 use leptos_router::*;
 use serde::{Deserialize, Serialize};
@@ -206,6 +206,16 @@ fn HomePage(cx: Scope) -> impl IntoView {
         move || (user_id()),
         move |user_id| get_todos(cx, user_id),
     );
+
+    #[cfg(not(feature = "ssr"))]
+    {
+        use pikav_web::Client;
+
+        if let Ok(e) = Client::new("http://127.0.0.1:6750/events") {
+            console_log(&format!("{e:?}"));
+        }
+
+    }
 
     view! { cx,
         <h1>"Welcome to Pikav!"</h1>

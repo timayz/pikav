@@ -1003,6 +1003,7 @@ dependencies = [
  "leptos_router",
  "log",
  "pikav-client",
+ "pikav-web",
  "rand",
  "serde",
  "serde_json",
@@ -1235,7 +1236,26 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "futures-sink",
- "gloo-utils",
+ "gloo-utils 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "js-sys",
+ "pin-project",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "gloo-net"
+version = "0.2.6"
+source = "git+https://github.com/rustwasm/gloo#a89e84b54c1545319ae90c31f43b0fe7d3bb9183"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-sink",
+ "gloo-utils 0.1.6 (git+https://github.com/rustwasm/gloo)",
  "js-sys",
  "pin-project",
  "serde",
@@ -1251,6 +1271,18 @@ name = "gloo-utils"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8e8fc851e9c7b9852508bc6e3f690f452f474417e8545ec9857b7f7377036b5"
+dependencies = [
+ "js-sys",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "gloo-utils"
+version = "0.1.6"
+source = "git+https://github.com/rustwasm/gloo#a89e84b54c1545319ae90c31f43b0fe7d3bb9183"
 dependencies = [
  "js-sys",
  "serde",
@@ -1754,7 +1786,7 @@ checksum = "214fca795824160eac59a0168607f3ff14ab09390a62938ee26e7ef077f27536"
 dependencies = [
  "cfg-if",
  "common_macros",
- "gloo-net",
+ "gloo-net 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "js-sys",
  "lazy_static",
  "leptos",
@@ -2273,6 +2305,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pikav-web"
+version = "0.13.0"
+dependencies = [
+ "anyhow",
+ "futures 0.3.28",
+ "gloo-net 0.2.6 (git+https://github.com/rustwasm/gloo)",
+ "serde",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
 name = "pin-project"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2775,7 +2818,7 @@ checksum = "8f7e74a67ed331d9f30befd2a0c187bdc705a7063a287f337ae0420522c4425b"
 dependencies = [
  "ciborium",
  "const_format",
- "gloo-net",
+ "gloo-net 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "js-sys",
  "once_cell",
  "proc-macro2",

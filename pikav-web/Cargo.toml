@@ -1,0 +1,20 @@
+[package]
+name = "pikav-web"
+version = "0.13.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "A library that help you send event to client with topic subscription"
+repository = "https://github.com/timada-org/pikav"
+homepage = "https://pikav.timada.co"
+documentation = "https://docs.rs/pikav"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#pikav = { path = "../pikav" }
+
+anyhow = "1.0.70"
+gloo-net = { git = "https://github.com/rustwasm/gloo" }
+serde = { version = "1.0.160", features = ["derive"] }
+futures = "0.3.28"
+wasm-bindgen-futures = "0.4.34"

@@ -6,6 +6,7 @@ members = [
     "./cluster",
     "./pikav",
     "./pikav-client",
+    "./pikav-web",
     "./example"
 ]
 
