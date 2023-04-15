@@ -7,7 +7,7 @@ use std::{
 
 use lazy_static::lazy_static;
 use regex::Regex;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 const TOPIC_NAME_VALIDATE_REGEX: &str = r"^[^#+]+$";
 
@@ -89,6 +89,15 @@ impl Serialize for TopicName {
         S: serde::Serializer,
     {
         serializer.serialize_str(self.0.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for TopicName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Self(Deserialize::deserialize(deserializer)?))
     }
 }
 

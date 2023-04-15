@@ -177,7 +177,7 @@ pub fn App(cx: Scope) -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/example.css"/>
 
         // sets the document title
-        <Title text="Welcome to Leptos"/>
+        <Title text="Welcome to Pikav"/>
 
         // content for this welcome page
         <Router>
@@ -214,6 +214,18 @@ fn HomePage(cx: Scope) -> impl IntoView {
         use std::time::Duration;
 
         let client = Client::new("http://127.0.0.1:6750/events").unwrap();
+
+        client.subscribe("$SYS/session", move |e| async move {
+            console_log(&format!("1. {:?}", e));
+        });
+
+        client.subscribe("$SYS/session", move |e| async move {
+            console_log(&format!("2. {:?}", e));
+        }).unwrap()();
+
+        client.subscribe("$SYS/session", move |e| async move {
+            console_log(&format!("3. {:?}", e));
+        });
 
         on_cleanup(cx, move || client.close());
     }
