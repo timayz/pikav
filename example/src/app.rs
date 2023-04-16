@@ -210,21 +210,18 @@ fn HomePage(cx: Scope) -> impl IntoView {
     cfg_if! {
     if #[cfg(feature = "hydrate")] {
 
-        use pikav_web::Client;
+        use pikav_web::{Client, Headers};
         use std::time::Duration;
 
-        let client = Client::new("http://127.0.0.1:6750/events").unwrap();
+        let client = Client::new("http://127.0.0.1:6750").get_headers( || async {
+            let mut headers = Headers::new();
+            headers.set("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJUaW1hZGEiLCJpYXQiOjE2ODE2ODExMTYsImV4cCI6MTcxMzIxNzExNiwiYXVkIjoidGltYWRhLmNvIiwic3ViIjoiam9obiJ9.HWHnSVpb9Xd4n6VfPLyR6ygJycX9nh5PmroP9ALDF4g");
 
-        client.subscribe("$SYS/session", move |e| async move {
+            Ok(headers)
+        }).run().unwrap();
+
+        let _ = client.subscribe("todos/+", move |e| async move {
             console_log(&format!("1. {:?}", e));
-        });
-
-        client.subscribe("$SYS/session", move |e| async move {
-            console_log(&format!("2. {:?}", e));
-        }).unwrap()();
-
-        client.subscribe("$SYS/session", move |e| async move {
-            console_log(&format!("3. {:?}", e));
         });
 
         on_cleanup(cx, move || client.close());
