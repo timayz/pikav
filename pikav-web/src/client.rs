@@ -56,10 +56,9 @@ impl Client {
         let mut source = gloo_net::eventsource::futures::EventSource::new(&self.source_url)?;
         let mut stream = source.subscribe("message")?;
         *self.source.borrow_mut() = Some(source);
-        let endpoint = self.endpoint.to_owned();
         let id = self.id.clone();
         let listeners = self.listeners.clone();
-        let get_headers = self.get_headers.clone();
+        let fetcher = Fetcher::from(&self);
 
         spawn_local(async move {
             while let Some(Ok((_, msg))) = stream.next().await {
@@ -97,20 +96,8 @@ impl Client {
                                 continue;
                             }
 
-                            let url = Self::get_url(endpoint.to_owned(), "subscribe", filter);
-                            let headers = match get_headers.borrow().as_ref() {
-                                Some(f) => match f().await {
-                                    Ok(h) => Some(h),
-                                    Err(e) => {
-                                        error!("{e}");
-                                        None
-                                    }
-                                },
-                                None => None,
-                            };
-                            if let Err(e) = Self::fetch(client_id, &url, headers).await {
+                            if let Err(e) = fetcher.fetch(&client_id, "subscribe", &filter).await {
                                 error!("{e}");
-                                continue;
                             }
 
                             subscribed.insert(filter);
@@ -179,34 +166,21 @@ impl Client {
             .filter(|(_, f, _)| f == &filter)
             .count();
 
+        let fetcher = Fetcher::from(self);
+
         if let (Some(client_id), 1) = (self.id.borrow().to_owned(), total_filters) {
             let filter = filter.clone();
-            let endpoint = self.endpoint.clone();
-            let get_headers = self.get_headers.clone();
+            let fetcher = fetcher.clone();
 
             spawn_local(async move {
-                let url = Self::get_url(endpoint.to_owned(), "subscribe", &filter);
-                let headers = match get_headers.borrow().as_ref() {
-                    Some(f) => match f().await {
-                        Ok(h) => Some(h),
-                        Err(e) => {
-                            error!("{e}");
-                            None
-                        }
-                    },
-                    None => None,
-                };
-
-                if let Err(e) = Self::fetch(&client_id, &url, headers).await {
+                if let Err(e) = fetcher.fetch(&client_id, "subscribe", &filter).await {
                     error!("{e}");
                 }
             });
         }
 
         let filter = filter.clone();
-        let endpoint = self.endpoint.clone();
         let client_id = self.id.clone();
-        let get_headers = self.get_headers.clone();
 
         move || {
             listeners.borrow_mut().retain(|l| l.0 != id);
@@ -223,43 +197,39 @@ impl Client {
 
             if let Some(client_id) = client_id.borrow().to_owned() {
                 spawn_local(async move {
-                    let url = Self::get_url(endpoint.to_owned(), "unsubscribe", &filter);
-                    let headers = match get_headers.borrow().as_ref() {
-                        Some(f) => match f().await {
-                            Ok(h) => Some(h),
-                            Err(e) => {
-                                error!("{e}");
-                                None
-                            }
-                        },
-                        None => None,
-                    };
-
-                    if let Err(e) = Self::fetch(&client_id, &url, headers).await {
+                    if let Err(e) = fetcher.fetch(&client_id, "unsubscribe", &filter).await {
                         error!("{e}");
                     }
                 });
             }
         }
     }
+}
 
-    fn get_url(
-        endpoint: impl Into<String>,
+#[derive(Clone)]
+struct Fetcher {
+    namespace: String,
+    endpoint: String,
+    get_headers: Rc<RefCell<Option<Box<dyn Fn() -> BoxFuture<'static, Result<Headers>>>>>>,
+}
+
+impl Fetcher {
+    pub async fn fetch(
+        &self,
+        client_id: &str,
         action: impl Into<String>,
         filter: &TopicFilter,
-    ) -> String {
-        format!(
-            "{}/{}/{}",
-            endpoint.into(),
+    ) -> Result<Response> {
+        let mut req = Request::put(&format!(
+            "{}/{}/{}/{}",
+            self.endpoint,
             action.into(),
+            self.namespace,
             filter.to_string()
-        )
-    }
+        ));
 
-    async fn fetch(client_id: &str, url: &str, headers: Option<Headers>) -> Result<Response> {
-        let mut req = Request::put(url);
-
-        if let Some(headers) = headers {
+        if let Some(get_header) = self.get_headers.borrow().as_ref() {
+            let headers = get_header().await?;
             req = req.headers(headers);
         }
 
@@ -271,5 +241,15 @@ impl Client {
             .await?;
 
         Ok(res)
+    }
+}
+
+impl From<&Client> for Fetcher {
+    fn from(value: &Client) -> Self {
+        Self {
+            namespace: value.namespace.to_owned(),
+            endpoint: value.endpoint.to_owned(),
+            get_headers: value.get_headers.clone(),
+        }
     }
 }

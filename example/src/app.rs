@@ -211,17 +211,25 @@ fn HomePage(cx: Scope) -> impl IntoView {
     if #[cfg(feature = "hydrate")] {
 
         use pikav_web::{Client, Headers};
-        use std::time::Duration;
 
-        let client = Client::new("http://127.0.0.1:6750").get_headers( || async {
-            let mut headers = Headers::new();
+        let client = Client::new("http://127.0.0.1:6750").namespace("example").get_headers( || async {
+            let headers = Headers::new();
             headers.set("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJUaW1hZGEiLCJpYXQiOjE2ODE2ODExMTYsImV4cCI6MTcxMzIxNzExNiwiYXVkIjoidGltYWRhLmNvIiwic3ViIjoiam9obiJ9.HWHnSVpb9Xd4n6VfPLyR6ygJycX9nh5PmroP9ALDF4g");
 
             Ok(headers)
         }).run().unwrap();
 
         let _ = client.subscribe("todos/+", move |e| async move {
-            console_log(&format!("1. {:?}", e));
+            match e.name.as_str() {
+                "Created" => {
+                    console_log("adding todo to list");
+                },
+                "Deleted" => {
+
+                    console_log("deleting todo from list");
+                },
+                _ => {}
+            }
         });
 
         on_cleanup(cx, move || client.close());
