@@ -96,7 +96,7 @@ impl Client {
                                 continue;
                             }
 
-                            if let Err(e) = fetcher.fetch(&client_id, "subscribe", &filter).await {
+                            if let Err(e) = fetcher.fetch(client_id, "subscribe", filter).await {
                                 error!("{e}");
                             }
 
@@ -179,7 +179,6 @@ impl Client {
             });
         }
 
-        let filter = filter.clone();
         let client_id = self.id.clone();
 
         move || {
