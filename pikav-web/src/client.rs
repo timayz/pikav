@@ -220,12 +220,13 @@ impl Fetcher {
         action: impl Into<String>,
         filter: &TopicFilter,
     ) -> Result<Response> {
+        let filter = filter.to_string();
         let mut req = Request::put(&format!(
             "{}/{}/{}/{}",
             self.endpoint,
             action.into(),
             self.namespace,
-            filter.to_string()
+            filter
         ));
 
         if let Some(get_header) = self.get_headers.borrow().as_ref() {
