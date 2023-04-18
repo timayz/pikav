@@ -2311,6 +2311,7 @@ dependencies = [
  "anyhow",
  "futures 0.3.28",
  "gloo-net 0.2.6 (git+https://github.com/rustwasm/gloo)",
+ "leptos",
  "log",
  "pikav",
  "serde",

@@ -11,7 +11,7 @@ codegen-units = 1
 lto = true
 
 [dependencies]
-pikav-web = { path = "../pikav-web" }
+pikav-web = { path = "../pikav-web", features = ["leptos"] }
 pikav-client = { path = "../pikav-client", optional = true }
 actix-files = { version = "0.6", optional = true }
 actix-web = { version = "4", optional = true, features = ["macros"] }
@@ -35,7 +35,7 @@ futures = { version = "0.3.28", optional = true }
 
 [features]
 default = []
-hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate"]
+hydrate = ["leptos/hydrate", "leptos_meta/hydrate", "leptos_router/hydrate", "pikav-web/hydrate"]
 ssr = [
   "dep:actix-files",
   "dep:actix-web",
@@ -48,6 +48,7 @@ ssr = [
   "leptos/ssr",
   "leptos_meta/ssr",
   "leptos_router/ssr",
+  "pikav-web/ssr"
 ]
 
 [package.metadata.leptos]

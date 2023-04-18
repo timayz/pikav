@@ -1,30 +1,43 @@
+use std::{cell::RefCell, rc::Rc};
+#[cfg(feature = "hydrate")]
 use std::{
-    cell::RefCell,
     collections::HashSet,
-    rc::Rc,
     sync::atomic::{AtomicUsize, Ordering},
 };
 
 use anyhow::Result;
-use futures::{future::BoxFuture, Future, StreamExt};
+#[cfg(feature = "hydrate")]
+use futures::StreamExt;
+use futures::{future::BoxFuture, Future};
+use gloo_net::http::Headers;
+#[cfg(feature = "hydrate")]
 use gloo_net::{
     eventsource::futures::EventSource,
-    http::{Headers, Request, Response},
+    http::{Request, Response},
 };
+#[cfg(feature = "hydrate")]
 use log::error;
-use pikav::{topic::TopicFilter, Event};
+#[cfg(feature = "hydrate")]
+use pikav::topic::TopicFilter;
+use pikav::Event;
 use serde_json::Value;
+#[cfg(feature = "hydrate")]
 use wasm_bindgen_futures::spawn_local;
 
 #[derive(Clone)]
 pub struct Client {
+    #[cfg(feature = "hydrate")]
     id: Rc<RefCell<Option<String>>>,
+    #[cfg(feature = "hydrate")]
     source_url: String,
+    #[cfg(feature = "hydrate")]
     source: Rc<RefCell<Option<EventSource>>>,
     endpoint: String,
     namespace: String,
+    #[cfg(feature = "hydrate")]
     next_listener_id: Rc<AtomicUsize>,
     get_headers: Rc<RefCell<Option<Box<dyn Fn() -> BoxFuture<'static, Result<Headers>>>>>>,
+    #[cfg(feature = "hydrate")]
     listeners: Rc<
         RefCell<
             Vec<(
@@ -41,17 +54,28 @@ impl Client {
         let endpoint = endpoint.into();
 
         Self {
+            #[cfg(feature = "hydrate")]
             id: Rc::default(),
             get_headers: Rc::default(),
+            #[cfg(feature = "hydrate")]
             next_listener_id: Rc::default(),
+            #[cfg(feature = "hydrate")]
             listeners: Rc::default(),
+            #[cfg(feature = "hydrate")]
             source: Rc::default(),
+            #[cfg(feature = "hydrate")]
             source_url: format!("{endpoint}/events"),
             endpoint,
             namespace: "_".to_owned(),
         }
     }
 
+    #[cfg(not(feature = "hydrate"))]
+    pub fn run(self) -> Result<Self> {
+        Ok(self)
+    }
+
+    #[cfg(feature = "hydrate")]
     pub fn run(self) -> Result<Self> {
         let mut source = gloo_net::eventsource::futures::EventSource::new(&self.source_url)?;
         let mut stream = source.subscribe("message")?;
@@ -129,6 +153,7 @@ impl Client {
     }
 
     pub fn close(&self) {
+        #[cfg(feature = "hydrate")]
         if let Some(source) = self.source.borrow().as_ref() {
             source.clone().close();
         }
@@ -144,6 +169,19 @@ impl Client {
         self
     }
 
+    #[cfg(not(feature = "hydrate"))]
+    pub fn subscribe<Fu>(
+        &self,
+        _filter: impl Into<String>,
+        _listener: impl Fn(Event<Value, Value>) -> Fu + 'static,
+    ) -> impl FnOnce()
+    where
+        Fu: Future<Output = ()> + 'static + Send,
+    {
+        move || {}
+    }
+
+    #[cfg(feature = "hydrate")]
     pub fn subscribe<Fu>(
         &self,
         filter: impl Into<String>,
@@ -152,7 +190,7 @@ impl Client {
     where
         Fu: Future<Output = ()> + 'static + Send,
     {
-        let filter = TopicFilter::new(filter).unwrap_or_else(|e| panic!("{e}"));
+        let filter = TopicFilter::new(format!("{}/{}", self.namespace, filter.into())).unwrap_or_else(|e| panic!("{e}"));
         let id = self.next_listener_id.fetch_add(1, Ordering::Relaxed);
         let listeners = self.listeners.clone();
 
@@ -206,12 +244,13 @@ impl Client {
 }
 
 #[derive(Clone)]
+#[cfg(feature = "hydrate")]
 struct Fetcher {
-    namespace: String,
     endpoint: String,
     get_headers: Rc<RefCell<Option<Box<dyn Fn() -> BoxFuture<'static, Result<Headers>>>>>>,
 }
 
+#[cfg(feature = "hydrate")]
 impl Fetcher {
     pub async fn fetch(
         &self,
@@ -221,10 +260,9 @@ impl Fetcher {
     ) -> Result<Response> {
         let filter = filter.to_string();
         let mut req = Request::put(&format!(
-            "{}/{}/{}/{}",
+            "{}/{}/{}",
             self.endpoint,
             action.into(),
-            self.namespace,
             filter
         ));
 
@@ -244,10 +282,10 @@ impl Fetcher {
     }
 }
 
+#[cfg(feature = "hydrate")]
 impl From<&Client> for Fetcher {
     fn from(value: &Client) -> Self {
         Self {
-            namespace: value.namespace.to_owned(),
             endpoint: value.endpoint.to_owned(),
             get_headers: value.get_headers.clone(),
         }

@@ -2,6 +2,8 @@ use cfg_if::cfg_if;
 use leptos::{leptos_dom::console_log, *};
 use leptos_meta::*;
 use leptos_router::*;
+use pikav_web::leptos::{pikav_context, use_subscribe};
+use pikav_web::{Client, Headers};
 use serde::{Deserialize, Serialize};
 
 cfg_if! {
@@ -34,7 +36,6 @@ if #[cfg(feature = "ssr")] {
         _ = DeleteTodo::register();
     }
 } else {
-
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Todo {
         pub id: i64,
@@ -169,6 +170,15 @@ pub fn App(cx: Scope) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context(cx);
 
+    let client = Client::new("http://127.0.0.1:6750").namespace("example").get_headers( || async {
+            let headers = Headers::new();
+            headers.set("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJUaW1hZGEiLCJpYXQiOjE2ODE2ODExMTYsImV4cCI6MTcxMzIxNzExNiwiYXVkIjoidGltYWRhLmNvIiwic3ViIjoiam9obiJ9.HWHnSVpb9Xd4n6VfPLyR6ygJycX9nh5PmroP9ALDF4g");
+
+            Ok(headers)
+        }).run().unwrap();
+
+    pikav_context(cx, client);
+
     view! {
         cx,
 
@@ -207,34 +217,17 @@ fn HomePage(cx: Scope) -> impl IntoView {
         move |user_id| get_todos(cx, user_id),
     );
 
-    cfg_if! {
-    if #[cfg(feature = "hydrate")] {
-
-        use pikav_web::{Client, Headers};
-
-        let client = Client::new("http://127.0.0.1:6750").namespace("example").get_headers( || async {
-            let headers = Headers::new();
-            headers.set("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJUaW1hZGEiLCJpYXQiOjE2ODE2ODExMTYsImV4cCI6MTcxMzIxNzExNiwiYXVkIjoidGltYWRhLmNvIiwic3ViIjoiam9obiJ9.HWHnSVpb9Xd4n6VfPLyR6ygJycX9nh5PmroP9ALDF4g");
-
-            Ok(headers)
-        }).run().unwrap();
-
-        let _ = client.subscribe("todos/+", move |e| async move {
-            match e.name.as_str() {
-                "Created" => {
-                    console_log("adding todo to list");
-                },
-                "Deleted" => {
-
-                    console_log("deleting todo from list");
-                },
-                _ => {}
+    use_subscribe(cx, "todos/+", move |e| async move {
+        match e.name.as_str() {
+            "Created" => {
+                console_log("adding todo to list");
             }
-        });
-
-        on_cleanup(cx, move || client.close());
-    }
-    }
+            "Deleted" => {
+                console_log("deleting todo from list");
+            }
+            _ => {}
+        }
+    });
 
     view! { cx,
         <h1>"Welcome to Pikav!"</h1>
