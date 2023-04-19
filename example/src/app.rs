@@ -1,5 +1,5 @@
 use cfg_if::cfg_if;
-use leptos::{leptos_dom::console_log, *};
+use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 use pikav_web::leptos::{pikav_context, use_subscribe};
@@ -220,10 +220,32 @@ fn HomePage(cx: Scope) -> impl IntoView {
     use_subscribe(cx, "todos/+", move |e| async move {
         match e.name.as_str() {
             "Created" => {
-                console_log("adding todo to list");
+                todos.update(move |res| {
+                    let data = serde_json::from_value::<ReadTodo>(e.data).unwrap();
+                    res.as_mut().unwrap().as_mut().unwrap().push(data);
+                });
             }
             "Deleted" => {
-                console_log("deleting todo from list");
+                let id = e
+                    .data
+                    .as_object()
+                    .unwrap()
+                    .get("id")
+                    .unwrap()
+                    .as_i64()
+                    .unwrap();
+
+                todos.update(move |res| {
+                    *res.as_mut().unwrap().as_mut().unwrap() = res
+                        .as_ref()
+                        .unwrap()
+                        .as_ref()
+                        .unwrap()
+                        .iter()
+                        .cloned()
+                        .filter(|todo| todo.id != id)
+                        .collect::<Vec<_>>();
+                });
             }
             _ => {}
         }
