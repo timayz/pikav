@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use cfg_if::cfg_if;
 use leptos::*;
 use leptos_meta::*;
@@ -34,6 +35,7 @@ if #[cfg(feature = "ssr")] {
         _ = GetTodos::register();
         _ = CreateTodo::register();
         _ = DeleteTodo::register();
+        _ = GetClientInfo::register();
     }
 } else {
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -51,6 +53,12 @@ if #[cfg(feature = "ssr")] {
         pub done: bool,
     }
 }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ClientInfo {
+    pub auth_token: String,
+    pub endpoint: String,
 }
 
 #[server(GetTodos, "/api")]
@@ -165,19 +173,18 @@ async fn delete_todo(cx: Scope, user_id: String, id: i64) -> Result<(), ServerFn
     Ok(())
 }
 
+#[server(GetClientInfo, "/api")]
+async fn get_client_info(cx: Scope, user_id: String) -> Result<ClientInfo, ServerFnError> {
+    Ok(ClientInfo{
+        auth_token: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJUaW1hZGEiLCJpYXQiOjE2ODE2ODExMTYsImV4cCI6MTcxMzIxNzExNiwiYXVkIjoidGltYWRhLmNvIiwic3ViIjoiam9obiJ9.HWHnSVpb9Xd4n6VfPLyR6ygJycX9nh5PmroP9ALDF4g".to_owned(),
+        endpoint: format!("http://127.0.0.1:{}", std::env::var("PIKAV_API_PORT").unwrap())
+    })
+}
+
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context(cx);
-
-    let client = Client::new("http://127.0.0.1:6750").namespace("example").get_headers( || async {
-            let headers = Headers::new();
-            headers.set("Authorization", "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJUaW1hZGEiLCJpYXQiOjE2ODE2ODExMTYsImV4cCI6MTcxMzIxNzExNiwiYXVkIjoidGltYWRhLmNvIiwic3ViIjoiam9obiJ9.HWHnSVpb9Xd4n6VfPLyR6ygJycX9nh5PmroP9ALDF4g");
-
-            Ok(headers)
-        }).run().unwrap();
-
-    pikav_context(cx, client);
 
     view! {
         cx,
@@ -191,13 +198,64 @@ pub fn App(cx: Scope) -> impl IntoView {
 
         // content for this welcome page
         <Router>
-            <main>
-                <Routes>
-                    <Route path="" view=|cx| view! { cx, <HomePage/> }/>
-                </Routes>
-            </main>
+            <Configure>
+                <main>
+                    <Routes>
+                        <Route path="" view=|cx| view! { cx, <HomePage/> }/>
+                    </Routes>
+                </main>
+            </Configure>
         </Router>
     }
+}
+
+/// Renders the home page of your application.
+#[component]
+fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
+    let query = use_query_map(cx);
+    let user_id = move || {
+        query
+            .with(|params| params.get("user").cloned())
+            .unwrap_or("john".to_owned())
+    };
+
+    let client_info = create_resource(
+        cx,
+        move || (user_id()),
+        move |user_id| get_client_info(cx, user_id),
+    );
+
+    let children = Rc::new(children);
+
+    view! {cx,
+        <Suspense fallback=|| view! {cx, ""}>
+            {
+                let children = children.clone();
+
+                client_info.read(cx).and_then(|res| res.ok()).map(move |info| view! {cx, <ConfigurePikav info=info>{children(cx)}</ConfigurePikav>})
+            }
+        </Suspense>
+    }
+}
+
+#[component]
+fn ConfigurePikav(cx: Scope, children: Children, info: ClientInfo) -> impl IntoView {
+    let client = Client::new(info.endpoint)
+        .namespace("example")
+        .get_headers(move || {
+            let token = info.auth_token.to_owned();
+            async move {
+                let headers = Headers::new();
+                headers.set("Authorization", token.as_str());
+                Ok(headers)
+            }
+        })
+        .run()
+        .unwrap();
+
+    pikav_context(cx, client);
+
+    children(cx)
 }
 
 /// Renders the home page of your application.

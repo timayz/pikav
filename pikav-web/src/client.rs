@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, pin::Pin, rc::Rc};
 #[cfg(feature = "hydrate")]
 use std::{
     collections::HashSet,
@@ -6,9 +6,9 @@ use std::{
 };
 
 use anyhow::Result;
+use futures::{Future};
 #[cfg(feature = "hydrate")]
-use futures::StreamExt;
-use futures::{future::BoxFuture, Future};
+use futures::{StreamExt, future::BoxFuture};
 use gloo_net::http::Headers;
 #[cfg(feature = "hydrate")]
 use gloo_net::{
@@ -36,7 +36,8 @@ pub struct Client {
     namespace: String,
     #[cfg(feature = "hydrate")]
     next_listener_id: Rc<AtomicUsize>,
-    get_headers: Rc<RefCell<Option<Box<dyn Fn() -> BoxFuture<'static, Result<Headers>>>>>>,
+    get_headers:
+        Rc<RefCell<Option<Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<Headers>>>>>>>>,
     #[cfg(feature = "hydrate")]
     listeners: Rc<
         RefCell<
@@ -161,7 +162,7 @@ impl Client {
 
     pub fn get_headers<Fu>(self, cb: impl Fn() -> Fu + 'static) -> Self
     where
-        Fu: Future<Output = Result<Headers>> + 'static + Send,
+        Fu: Future<Output = Result<Headers>> + 'static,
     {
         let get_headers = self.get_headers.clone();
         *get_headers.borrow_mut() = Some(Box::new(move || Box::pin(cb())));
@@ -190,7 +191,8 @@ impl Client {
     where
         Fu: Future<Output = ()> + 'static + Send,
     {
-        let filter = TopicFilter::new(format!("{}/{}", self.namespace, filter.into())).unwrap_or_else(|e| panic!("{e}"));
+        let filter = TopicFilter::new(format!("{}/{}", self.namespace, filter.into()))
+            .unwrap_or_else(|e| panic!("{e}"));
         let id = self.next_listener_id.fetch_add(1, Ordering::Relaxed);
         let listeners = self.listeners.clone();
 
@@ -247,7 +249,8 @@ impl Client {
 #[cfg(feature = "hydrate")]
 struct Fetcher {
     endpoint: String,
-    get_headers: Rc<RefCell<Option<Box<dyn Fn() -> BoxFuture<'static, Result<Headers>>>>>>,
+    get_headers:
+        Rc<RefCell<Option<Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<Headers>>>>>>>>,
 }
 
 #[cfg(feature = "hydrate")]
@@ -259,12 +262,7 @@ impl Fetcher {
         filter: &TopicFilter,
     ) -> Result<Response> {
         let filter = filter.to_string();
-        let mut req = Request::put(&format!(
-            "{}/{}/{}",
-            self.endpoint,
-            action.into(),
-            filter
-        ));
+        let mut req = Request::put(&format!("{}/{}/{}", self.endpoint, action.into(), filter));
 
         if let Some(get_header) = self.get_headers.borrow().as_ref() {
             let headers = get_header().await?;

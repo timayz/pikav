@@ -5,6 +5,9 @@ addr:
 cors:
   permissive: true
 
+jwks:
+  url: http://127.0.0.1:6550/.well-known/jwks.json
+
 nodes:
   - http://127.0.0.1:6751
   - http://127.0.0.1:6761
