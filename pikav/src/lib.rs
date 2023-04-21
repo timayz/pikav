@@ -22,61 +22,21 @@ pub enum Error {
     SessionNotFound,
 }
 
-struct Ignore;
-
-impl From<Ignore> for Metadata<bool> {
-    fn from(_v: Ignore) -> Self {
-        Metadata::Ignore
-    }
-}
-
-#[derive(Debug)]
-enum Metadata<T: Serialize> {
-    Ignore,
-    Use(T),
-}
-
-impl<T: Serialize> From<Option<T>> for Metadata<T> {
-    fn from(v: Option<T>) -> Self {
-        match v {
-            Some(v) => Metadata::Use(v),
-            None => Metadata::Ignore,
-        }
-    }
-}
-
-impl<T: Serialize> Serialize for Metadata<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Metadata::Ignore => serializer.serialize_none(),
-            Metadata::Use(data) => data.serialize(serializer),
-        }
-    }
-}
-
 #[derive(Debug, Serialize)]
 pub struct Event<D: Serialize, M: Serialize> {
     pub topic: TopicName,
     pub name: String,
     pub data: D,
-    pub metadata: M,
+    pub metadata: Option<M>,
 }
 
-impl<D: Serialize, M: Serialize> Event<D, Metadata<M>> {
-    pub fn new<N: Into<String>, T: Into<Metadata<M>>>(
-        topic: TopicName,
-        name: N,
-        data: D,
-        metadata: T,
-    ) -> Self {
+impl<D: Serialize, M: Serialize> Event<D, M> {
+    pub fn new(topic: TopicName, name: impl Into<String>, data: D, metadata: Option<M>) -> Self {
         Event {
             topic,
             name: name.into(),
             data,
-            metadata: metadata.into(),
+            metadata,
         }
     }
 }
@@ -271,7 +231,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Pikav<T> {
                 TopicName::new("$SYS/session").unwrap(),
                 "Created",
                 id.as_str(),
-                Ignore,
+                None::<bool>,
             ))
             .is_ok();
 

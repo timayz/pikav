@@ -86,19 +86,19 @@ impl From<serde_json::Value> for Value {
                 kind: Some(Kind::BoolValue(v)),
             },
             serde_json::Value::Number(v) => {
-                if let Some(v) = v.as_f64() {
+                if let (Some(v), true) = (v.as_f64(), v.is_f64()) {
                     return Value {
                         kind: Some(Kind::DoubleValue(v)),
                     };
                 }
 
-                if let Some(v) = v.as_i64() {
+                if let (Some(v), true) = (v.as_i64(), v.is_i64()) {
                     return Value {
                         kind: Some(Kind::Int64Value(v)),
                     };
                 }
 
-                if let Some(v) = v.as_u64() {
+                if let (Some(v), true) = (v.as_u64(), v.is_u64()) {
                     return Value {
                         kind: Some(Kind::Uint64Value(v)),
                     };

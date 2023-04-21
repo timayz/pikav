@@ -44,6 +44,7 @@ down:
 	docker compose down -v --remove-orphans
 
 clippy:
+	cargo clippy --fix --all-features -- -D warnings
 	cargo clippy --all-features -- -D warnings
 
 fmt:
