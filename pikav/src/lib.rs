@@ -36,7 +36,7 @@ impl<D: Serialize, M: Serialize> Event<D, M> {
             topic,
             name: name.into(),
             data,
-            metadata: metadata.into(),
+            metadata,
         }
     }
 }
