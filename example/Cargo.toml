@@ -32,6 +32,7 @@ serde_json = { version = "1.0.96"}
 sqlx = { version = "0.6.3", optional = true, features = [ "runtime-actix-rustls", "sqlite" ] }
 rand = { version = "0.8.5", optional = true }
 futures = { version = "0.3.28", optional = true }
+reqwest = { version = "0.11.16", feature = ["json"] }
 
 [features]
 default = []

@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use cfg_if::cfg_if;
 use leptos::*;
 use leptos_meta::*;
@@ -6,6 +5,7 @@ use leptos_router::*;
 use pikav_web::leptos::{pikav_context, use_subscribe};
 use pikav_web::{Client, Headers};
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 cfg_if! {
 if #[cfg(feature = "ssr")] {
@@ -175,6 +175,15 @@ async fn delete_todo(cx: Scope, user_id: String, id: i64) -> Result<(), ServerFn
 
 #[server(GetClientInfo, "/api")]
 async fn get_client_info(cx: Scope, user_id: String) -> Result<ClientInfo, ServerFnError> {
+    let json = reqwest::Client::new()
+        .post("http://127.0.0.1:6550/oauth/token")
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        // .json(&serde_json::json!({ "client_id": user_id }))
+        .send()
+        // .await?
+        // .json()
+        .await.unwrap();
     Ok(ClientInfo{
         auth_token: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJUaW1hZGEiLCJpYXQiOjE2ODE2ODExMTYsImV4cCI6MTcxMzIxNzExNiwiYXVkIjoidGltYWRhLmNvIiwic3ViIjoiam9obiJ9.HWHnSVpb9Xd4n6VfPLyR6ygJycX9nh5PmroP9ALDF4g".to_owned(),
         endpoint: format!("http://127.0.0.1:{}", std::env::var("PIKAV_API_PORT").unwrap())
