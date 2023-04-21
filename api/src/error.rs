@@ -33,9 +33,9 @@ impl ResponseError for ApiError {
     fn error_response(&self) -> HttpResponse {
         let mut res = HttpResponseBuilder::new(self.status_code());
 
-        // if let ApiError::InternalServerError(e) = self {
-        //     error!("{}", e);
-        // }
+        if let ApiError::InternalServerError(e) = self {
+            tracing::error!("{}", e);
+        }
 
         res.json(
             serde_json::json!({"code": self.status_code().as_u16(), "message": self.to_string()}),

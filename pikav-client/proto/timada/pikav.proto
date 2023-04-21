@@ -15,7 +15,7 @@ message Event {
     string topic = 2;
     string name = 3;
     Value data = 4;
-    Value metadata = 5;
+    optional Value metadata = 5;
 }
 
 message Value {
