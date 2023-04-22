@@ -539,7 +539,7 @@ checksum = "8a2dd5a6fe8c6e3502f568a6353e5273bbb15193ad9a89e457b9970798efbea1"
 
 [[package]]
 name = "cmd"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "actix-rt",
  "clap",
@@ -736,7 +736,7 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
 name = "example"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "actix-jwks",
  "actix-web",
@@ -1494,7 +1494,7 @@ dependencies = [
 
 [[package]]
 name = "pikav"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "lazy_static",
  "nanoid",
@@ -1507,7 +1507,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-api"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "actix-cors",
  "actix-jwks",
@@ -1526,7 +1526,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-client"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "parking_lot 0.12.1",
  "prost",
@@ -1544,7 +1544,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-cluster"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "bytes",
  "pikav",
@@ -1834,9 +1834,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.37.13"
+version = "0.37.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f79bef90eb6d984c72722595b5b1348ab39275a5e5123faca6863bf07d75a4e0"
+checksum = "d9b864d3c18a5785a05953adeed93e2dca37ed30f18e69bba9f30079d51f363f"
 dependencies = [
  "bitflags",
  "errno",
@@ -2490,9 +2490,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.3.16"
+version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6176eae26dd70d0c919749377897b54a9276bd7061339665dd68777926b5a70"
+checksum = "30a651bc37f915e81f087d86e62a18eec5f79550c7faff886f7090b4ea757c77"
 dependencies = [
  "nu-ansi-term",
  "sharded-slab",
