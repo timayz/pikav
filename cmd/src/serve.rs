@@ -49,7 +49,7 @@ impl Serve {
             Err(e) => panic!("{e:?}"),
         };
 
-        let publisher = Publisher::new();
+        let publisher = Publisher::start();
 
         let cluster = Cluster::new(ClusterOptions {
             addr: self.addr.cluster.to_owned(),

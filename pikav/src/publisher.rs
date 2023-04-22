@@ -136,7 +136,7 @@ pub struct Publisher<T: From<String> + Clone + Debug + Sync + Send + 'static> {
 }
 
 impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
-    pub fn new() -> Self {
+    pub fn start() -> Self {
         let publisher = Self::default();
 
         tokio::spawn({
@@ -297,6 +297,9 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
 impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Default for Publisher<T> {
     fn default() -> Self {
-        Self::new()
+        Self {
+            clients: Arc::default(),
+            user_clients: Arc::default(),
+        }
     }
 }
