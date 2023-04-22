@@ -85,12 +85,20 @@ impl Client {
                     let mut subscribed = HashSet::new();
 
                     if let Some(client_id) = event.data.as_str() {
-                        for (_, filter, _) in listeners.borrow().iter() {
-                            if subscribed.contains(filter) {
+                        let filters = {
+                            listeners
+                                .borrow()
+                                .iter()
+                                .map(|(_, f, _)| f.to_owned())
+                                .collect::<Vec<_>>()
+                        };
+
+                        for filter in filters {
+                            if subscribed.contains(&filter) {
                                 continue;
                             }
 
-                            if let Err(e) = fetcher.fetch(client_id, "subscribe", filter).await {
+                            if let Err(e) = fetcher.fetch(client_id, "subscribe", &filter).await {
                                 error!("{e}");
                             }
 
@@ -99,11 +107,17 @@ impl Client {
                     }
                 }
 
-                for (_, filter, listener) in listeners.borrow().iter() {
-                    if filter.get_matcher().is_match(&event.topic) {
-                        listener(event.clone()).await;
+                let listeners_fut = {
+                    let mut listeners_fut = Vec::new();
+                    for (_, filter, listener) in listeners.borrow().iter() {
+                        if filter.get_matcher().is_match(&event.topic) {
+                            listeners_fut.push(listener(event.clone()));
+                        }
                     }
-                }
+                    listeners_fut
+                };
+
+                futures::future::join_all(listeners_fut).await;
             }
         });
 
@@ -215,9 +229,10 @@ impl Fetcher {
     ) -> Result<Response> {
         let filter = filter.to_string();
         let mut req = Request::put(&format!("{}/{}/{}", self.endpoint, action.into(), filter));
+        let get_headers = { self.get_headers.borrow().as_ref().map(|f| f()) };
 
-        if let Some(get_header) = self.get_headers.borrow().as_ref() {
-            let headers = get_header().await?;
+        if let Some(get_headers) = get_headers {
+            let headers = get_headers.await?;
             req = req.headers(headers);
         }
 
