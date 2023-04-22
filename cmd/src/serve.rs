@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use config::{Config, ConfigError, Environment, File};
-use pikav_api::{client::Client, App, AppCors, AppJwks, AppOptions, Pikav};
+use pikav_api::{client::Client, App, AppCors, AppJwks, AppOptions, Publisher};
 use pikav_cluster::{Cluster, ClusterOptions};
 use serde::Deserialize;
 use tracing::Level;
@@ -49,11 +49,11 @@ impl Serve {
             Err(e) => panic!("{e:?}"),
         };
 
-        let pikav = Pikav::new();
+        let publisher = Publisher::new();
 
         let cluster = Cluster::new(ClusterOptions {
             addr: self.addr.cluster.to_owned(),
-            pikav: pikav.clone(),
+            publisher: publisher.clone(),
             nodes: nodes.clone(),
         });
 
@@ -61,7 +61,7 @@ impl Serve {
             listen: self.addr.api.to_owned(),
             jwks: self.jwks.clone(),
             cors: self.cors.clone(),
-            pikav,
+            publisher,
             nodes,
         });
 

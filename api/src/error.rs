@@ -55,8 +55,8 @@ impl From<TopicFilterError> for ApiError {
     }
 }
 
-impl From<pikav::Error> for ApiError {
-    fn from(_: pikav::Error) -> Self {
+impl From<pikav::publisher::Error> for ApiError {
+    fn from(_: pikav::publisher::Error) -> Self {
         ApiError::NotFound
     }
 }
