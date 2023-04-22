@@ -3,25 +3,13 @@ use futures::Future;
 use gloo_net::http::Headers;
 use pikav::Event;
 use serde_json::Value;
-use std::{cell::RefCell, pin::Pin, rc::Rc};
 
 #[derive(Clone)]
-pub struct Client {
-    endpoint: String,
-    namespace: String,
-    get_headers:
-        Rc<RefCell<Option<Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<Headers>>>>>>>>,
-}
+pub struct Client;
 
 impl Client {
-    pub fn new(endpoint: impl Into<String>) -> Self {
-        let endpoint = endpoint.into();
-
-        Self {
-            get_headers: Rc::default(),
-            endpoint,
-            namespace: "_".to_owned(),
-        }
+    pub fn new(_endpoint: impl Into<String>) -> Self {
+        Self {}
     }
 
     #[cfg(not(feature = "hydrate"))]
@@ -29,27 +17,20 @@ impl Client {
         Ok(self)
     }
 
-    pub fn endpoint(mut self, v: impl Into<String>) -> Self {
-        self.endpoint = v.into();
-
+    pub fn endpoint(self, _v: impl Into<String>) -> Self {
         self
     }
 
-    pub fn namespace(mut self, v: impl Into<String>) -> Self {
-        self.namespace = v.into();
-
+    pub fn namespace(self, _v: impl Into<String>) -> Self {
         self
     }
 
     pub fn close(&self) {}
 
-    pub fn get_headers<Fu>(self, cb: impl Fn() -> Fu + 'static) -> Self
+    pub fn get_headers<Fu>(self, _cb: impl Fn() -> Fu + 'static) -> Self
     where
         Fu: Future<Output = Result<Headers>> + 'static,
     {
-        let get_headers = self.get_headers.clone();
-        *get_headers.borrow_mut() = Some(Box::new(move || Box::pin(cb())));
-
         self
     }
 

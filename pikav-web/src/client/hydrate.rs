@@ -15,6 +15,9 @@ use pikav::{topic::TopicFilter, Event};
 use serde_json::Value;
 use wasm_bindgen_futures::spawn_local;
 
+type HeadersFut = Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<Headers>>>>>;
+type ListenerFut = Box<dyn Fn(Event<Value, Value>) -> BoxFuture<'static, ()>>;
+
 #[derive(Clone)]
 pub struct Client {
     id: Rc<RefCell<Option<String>>>,
@@ -23,17 +26,8 @@ pub struct Client {
     endpoint: String,
     namespace: String,
     next_listener_id: Rc<AtomicUsize>,
-    get_headers:
-        Rc<RefCell<Option<Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<Headers>>>>>>>>,
-    listeners: Rc<
-        RefCell<
-            Vec<(
-                usize,
-                TopicFilter,
-                Box<dyn Fn(Event<Value, Value>) -> BoxFuture<'static, ()>>,
-            )>,
-        >,
-    >,
+    get_headers: Rc<RefCell<Option<HeadersFut>>>,
+    listeners: Rc<RefCell<Vec<(usize, TopicFilter, ListenerFut)>>>,
 }
 
 impl Client {
@@ -209,8 +203,7 @@ impl Client {
 #[derive(Clone)]
 struct Fetcher {
     endpoint: String,
-    get_headers:
-        Rc<RefCell<Option<Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<Headers>>>>>>>>,
+    get_headers: Rc<RefCell<Option<HeadersFut>>>,
 }
 
 impl Fetcher {
