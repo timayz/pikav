@@ -1,9 +1,9 @@
-use std::{cell::RefCell, pin::Pin, rc::Rc};
 use anyhow::Result;
 use futures::Future;
 use gloo_net::http::Headers;
 use pikav::Event;
 use serde_json::Value;
+use std::{cell::RefCell, pin::Pin, rc::Rc};
 
 #[derive(Clone)]
 pub struct Client {

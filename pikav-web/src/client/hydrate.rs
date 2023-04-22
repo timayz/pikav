@@ -11,7 +11,7 @@ use gloo_net::{
     http::{Headers, Request, Response},
 };
 use log::error;
-use pikav::{Event, topic::TopicFilter};
+use pikav::{topic::TopicFilter, Event};
 use serde_json::Value;
 use wasm_bindgen_futures::spawn_local;
 
