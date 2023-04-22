@@ -1,6 +1,6 @@
 [package]
 name = "pikav-client"
-version = "0.13.1"
+version = "0.13.2"
 edition = "2021"
 license = "Apache-2.0"
 description = "A client that help you publish to pikav server"
