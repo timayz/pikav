@@ -288,7 +288,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
             for id in ids {
                 if let Some(client) = clients.get(id) {
-                    let _ = client.filter_send(&event.event);
+                    let _ = client.filter_send(&event.event).await;
                 }
             }
         }
