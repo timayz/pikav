@@ -1,0 +1,27 @@
+[package]
+name = "pikav-web"
+version = "0.14.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "A client that help you publish to pikav server"
+repository = "https://github.com/timada-org/pikav"
+homepage = "https://pikav.timada.co"
+documentation = "https://docs.rs/pikav-client"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pikav = { path = "../pikav", features = ["event"] }
+
+anyhow = "1.0.70"
+gloo-net = { git = "https://github.com/rustwasm/gloo" }
+serde = { version = "1.0.160", features = ["derive"] }
+serde_json = "1.0.96"
+futures = "0.3.28"
+wasm-bindgen-futures = { version = "0.4.34", optional = true }
+log = { version = "0.4.17", optional = true }
+
+[features]
+default = ["hydrate"]
+ssr = []
+hydrate = ["dep:wasm-bindgen-futures", "dep:log"]

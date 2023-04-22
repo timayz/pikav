@@ -922,6 +922,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "gloo-net"
+version = "0.2.6"
+source = "git+https://github.com/rustwasm/gloo#a89e84b54c1545319ae90c31f43b0fe7d3bb9183"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-sink",
+ "gloo-utils",
+ "js-sys",
+ "pin-project",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+]
+
+[[package]]
+name = "gloo-utils"
+version = "0.1.6"
+source = "git+https://github.com/rustwasm/gloo#a89e84b54c1545319ae90c31f43b0fe7d3bb9183"
+dependencies = [
+ "js-sys",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1555,6 +1586,20 @@ dependencies = [
  "tokio",
  "tonic",
  "tracing",
+]
+
+[[package]]
+name = "pikav-web"
+version = "0.14.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "gloo-net",
+ "log",
+ "pikav",
+ "serde",
+ "serde_json",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]
