@@ -22,13 +22,13 @@ use pikav::topic::TopicFilter;
 use serde::Deserialize;
 use serde_json::json;
 
-pub use pikav::{Pikav, Receiver, SubscribeOptions};
+pub use pikav::publisher::{Publisher, Receiver};
 pub use pikav_client as client;
 
 #[put(r"/subscribe/{filter:.*}")]
 async fn subscribe(
     params: web::Path<(String,)>,
-    pikav: Data<Pikav<Bytes>>,
+    publisher: Data<Publisher<Bytes>>,
     client: ReqClient,
     nodes: Data<Vec<client::Client>>,
     jwt: JwtPayload,
@@ -36,12 +36,9 @@ async fn subscribe(
     let params = params.into_inner();
     let filter = TopicFilter::new(params.0.to_owned())?;
 
-    pikav
-        .subscribe(SubscribeOptions {
-            filter,
-            user_id: jwt.subject.to_owned(),
-            client_id: client.0.to_owned(),
-        })
+    publisher
+        .subscribe(filter, &jwt.subject, &client.0)
+        .await
         .ok();
 
     for node in nodes.iter().filter(|n| n.same_region) {
@@ -59,7 +56,7 @@ async fn subscribe(
 #[put(r"/unsubscribe/{filter:.*}")]
 async fn unsubscribe(
     params: web::Path<(String,)>,
-    pikav: Data<Pikav<Bytes>>,
+    publisher: Data<Publisher<Bytes>>,
     client: ReqClient,
     jwt: JwtPayload,
     nodes: Data<Vec<client::Client>>,
@@ -67,12 +64,9 @@ async fn unsubscribe(
     let params = params.into_inner();
     let filter = TopicFilter::new(params.0.to_owned())?;
 
-    pikav
-        .unsubscribe(SubscribeOptions {
-            filter,
-            user_id: jwt.subject.to_owned(),
-            client_id: client.0.to_owned(),
-        })
+    publisher
+        .unsubscribe(filter, &jwt.subject, &client.0)
+        .await
         .ok();
 
     for node in nodes.iter().filter(|n| n.same_region) {
@@ -88,10 +82,10 @@ async fn unsubscribe(
 }
 
 #[get("/events")]
-async fn events(pikav: Data<Pikav<Bytes>>) -> Result<HttpResponse, ApiError> {
-    let rx = match pikav.new_client() {
+async fn events(publisher: Data<Publisher<Bytes>>) -> Result<HttpResponse, ApiError> {
+    let rx = match publisher.create_client().await {
         Some(rx) => rx,
-        None => {
+        _ => {
             return ApiError::InternalServerError("Failed to create client".to_owned())
                 .into_response()
         }
@@ -116,7 +110,7 @@ pub struct AppOptions {
     pub listen: String,
     pub jwks: Option<AppJwks>,
     pub cors: Option<AppCors>,
-    pub pikav: Pikav<Bytes>,
+    pub publisher: Publisher<Bytes>,
     pub nodes: Vec<client::Client>,
 }
 
@@ -130,7 +124,7 @@ impl App {
     }
 
     pub async fn run(&self) -> std::io::Result<()> {
-        let pikav = self.options.pikav.clone();
+        let publisher = self.options.publisher.clone();
 
         let cors_permissive = self
             .options
@@ -153,7 +147,7 @@ impl App {
 
         HttpServer::new(move || {
             ActixApp::new()
-                .app_data(Data::new(pikav.clone()))
+                .app_data(Data::new(publisher.clone()))
                 .app_data(Data::new(jwks_client.clone()))
                 .app_data(Data::new(nodes.clone()))
                 .wrap(Condition::new(cors_permissive, Cors::permissive()))

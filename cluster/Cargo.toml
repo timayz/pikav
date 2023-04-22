@@ -7,7 +7,7 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pikav = { path = "../pikav" }
+pikav = { path = "../pikav", features = ["publisher"] }
 pikav-client = { path = "../pikav-client" }
 
 tonic = { version = "0.9.1", features = ["tls"] }

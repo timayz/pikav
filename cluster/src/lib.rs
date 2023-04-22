@@ -1,7 +1,8 @@
 use bytes::Bytes;
 use pikav::{
+    publisher::{Message, Publisher},
     topic::{TopicFilter, TopicName},
-    Event, PubEvent, SubscribeOptions,
+    Event,
 };
 use pikav_client::{
     timada::{
@@ -15,7 +16,7 @@ use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
 pub struct Pikav {
-    pub pikav: pikav::Pikav<Bytes>,
+    pub publisher: Publisher<Bytes>,
     pub nodes: Vec<Client>,
 }
 
@@ -27,7 +28,7 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
     ) -> Result<Response<PublishReply>, Status> {
         let req = request.into_inner();
 
-        let mut pub_events: Vec<PubEvent<Value, Value>> = Vec::new();
+        let mut messages: Vec<Message<Value, Value>> = Vec::new();
 
         for e in req.events.iter() {
             let topic = match TopicName::new(e.topic.to_owned()) {
@@ -35,7 +36,7 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
                 Err(e) => return Err(Status::invalid_argument(e.to_string())),
             };
 
-            pub_events.push(PubEvent {
+            messages.push(Message {
                 event: Event {
                     topic,
                     name: e.name.to_owned(),
@@ -46,7 +47,7 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
             });
         }
 
-        self.pikav.publish(pub_events.iter().collect::<_>());
+        self.publisher.publish(messages.iter().collect::<_>()).await;
 
         if req.propagate {
             for node in self.nodes.iter() {
@@ -68,12 +69,9 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
             Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
-        self.pikav
-            .subscribe(SubscribeOptions {
-                filter,
-                user_id: req.user_id,
-                client_id: req.client_id,
-            })
+        self.publisher
+            .subscribe(filter, req.user_id, req.client_id)
+            .await
             .ok();
 
         Ok(Response::new(SubscribeReply { success: true }))
@@ -90,12 +88,9 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
             Err(e) => return Err(Status::invalid_argument(e.to_string())),
         };
 
-        self.pikav
-            .unsubscribe(SubscribeOptions {
-                filter,
-                user_id: req.user_id,
-                client_id: req.client_id,
-            })
+        self.publisher
+            .unsubscribe(filter, req.user_id, req.client_id)
+            .await
             .ok();
 
         Ok(Response::new(UnsubscribeReply { success: true }))
@@ -104,7 +99,7 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
 
 pub struct ClusterOptions {
     pub addr: String,
-    pub pikav: pikav::Pikav<Bytes>,
+    pub publisher: Publisher<Bytes>,
     pub nodes: Vec<Client>,
 }
 
@@ -121,7 +116,7 @@ impl Cluster {
         let addr = self.options.addr.parse().unwrap();
 
         let pikav = Pikav {
-            pikav: self.options.pikav.clone(),
+            publisher: self.options.publisher.clone(),
             nodes: self.options.nodes.clone(),
         };
 
