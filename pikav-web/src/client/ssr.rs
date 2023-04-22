@@ -12,7 +12,6 @@ impl Client {
         Self {}
     }
 
-    #[cfg(not(feature = "hydrate"))]
     pub fn run(self) -> Result<Self> {
         Ok(self)
     }
