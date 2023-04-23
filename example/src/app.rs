@@ -229,7 +229,7 @@ fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
 
     let client_info = create_resource(
         cx,
-        move || (user_id()),
+        user_id,
         move |user_id| get_client_info(cx, user_id),
     );
 
@@ -279,7 +279,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
     let delete_todo = create_server_action::<DeleteTodo>(cx);
     let todos = create_resource(
         cx,
-        move || (user_id()),
+        user_id,
         move |user_id| get_todos(cx, user_id),
     );
 
