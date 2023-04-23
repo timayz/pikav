@@ -167,7 +167,7 @@ pub struct TokenResp {
 }
 
 #[server(GetClientInfo, "/api")]
-async fn get_client_info(cx: Scope, user_id: String) -> Result<ClientInfo, ServerFnError> {
+async fn get_client_info(_cx: Scope, user_id: String) -> Result<ClientInfo, ServerFnError> {
     let resp: TokenResp = reqwest::Client::new()
         .post("http://127.0.0.1:6550/oauth/token")
         .header("Accept", "application/json")
