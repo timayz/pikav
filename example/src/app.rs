@@ -8,51 +8,38 @@ use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
 cfg_if! {
-if #[cfg(feature = "ssr")] {
-    use sqlx::sqlite::SqlitePool;
-    use actix_web::{FromRequest, HttpRequest, rt::time::sleep};
-    use rand::Rng;
-    use pikav_client::Event;
-    use std::time::Duration;
-    use serde_json::json;
+    if #[cfg(feature = "ssr")] {
+        use sqlx::sqlite::SqlitePool;
+        use actix_web::{FromRequest, HttpRequest, rt::time::sleep};
+        use rand::Rng;
+        use pikav_client::Event;
+        use std::time::Duration;
+        use serde_json::json;
 
-    #[derive(Clone, Debug, Deserialize, Serialize, sqlx::FromRow)]
-    pub struct Todo {
-        pub id: i64,
-        pub user_id: String,
-        pub text: String,
-        pub done: bool,
-    }
-
-    #[derive(Clone, Debug, Deserialize, Serialize, sqlx::FromRow)]
-    pub struct ReadTodo {
-        pub id: i64,
-        pub text: String,
-        pub done: bool,
-    }
-
-    pub fn register_server_functions() {
-        _ = GetTodos::register();
-        _ = CreateTodo::register();
-        _ = DeleteTodo::register();
-        _ = GetClientInfo::register();
-    }
-} else {
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Todo {
-        pub id: i64,
-        pub user_id: String,
-        pub text: String,
-        pub done: bool,
-    }
-
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct ReadTodo {
-        pub id: i64,
-        pub text: String,
-        pub done: bool,
+        pub fn register_server_functions() {
+            _ = GetTodos::register();
+            _ = CreateTodo::register();
+            _ = DeleteTodo::register();
+            _ = GetClientInfo::register();
+        }
     }
 }
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "ssr", derive(sqlx::FromRow))]
+pub struct Todo {
+    pub id: i64,
+    pub user_id: String,
+    pub text: String,
+    pub done: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "ssr", derive(sqlx::FromRow))]
+pub struct ReadTodo {
+    pub id: i64,
+    pub text: String,
+    pub done: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -173,20 +160,32 @@ async fn delete_todo(cx: Scope, user_id: String, id: i64) -> Result<(), ServerFn
     Ok(())
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TokenResp {
+    pub token_type: String,
+    pub access_token: String,
+}
+
 #[server(GetClientInfo, "/api")]
 async fn get_client_info(cx: Scope, user_id: String) -> Result<ClientInfo, ServerFnError> {
-    // let json = reqwest::Client::new()
-    //     .post("http://127.0.0.1:6550/oauth/token")
-    //     .header("Accept", "application/json")
-    //     .header("Content-Type", "application/json")
-    //     // .json(&serde_json::json!({ "client_id": user_id }))
-    //     .send()
-    //     // .await?
-    //     // .json()
-    //     .await.unwrap();
-    Ok(ClientInfo{
-        auth_token: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJUaW1hZGEiLCJpYXQiOjE2ODE2ODExMTYsImV4cCI6MTcxMzIxNzExNiwiYXVkIjoidGltYWRhLmNvIiwic3ViIjoiam9obiJ9.HWHnSVpb9Xd4n6VfPLyR6ygJycX9nh5PmroP9ALDF4g".to_owned(),
-        endpoint: format!("http://127.0.0.1:{}", std::env::var("PIKAV_API_PORT").unwrap())
+    let resp: TokenResp = reqwest::Client::new()
+        .post("http://127.0.0.1:6550/oauth/token")
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .json(&serde_json::json!({ "client_id": user_id }))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+
+    Ok(ClientInfo {
+        auth_token: format!("{} {}", resp.token_type, resp.access_token),
+        endpoint: format!(
+            "http://127.0.0.1:{}",
+            std::env::var("PIKAV_API_PORT").unwrap()
+        ),
     })
 }
 
@@ -238,11 +237,11 @@ fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
 
     view! {cx,
         <Suspense fallback=|| view! {cx, ""}>
-            {
-                let children = children.clone();
+        {
+            let children = children.clone();
 
-                client_info.read(cx).and_then(|res| res.ok()).map(move |info| view! {cx, <ConfigurePikav info=info>{children(cx)}</ConfigurePikav>})
-            }
+            client_info.read(cx).and_then(|res| res.ok()).map(move |info| view! {cx, <ConfigurePikav info=info>{children(cx)}</ConfigurePikav>})
+        }
         </Suspense>
     }
 }
@@ -287,32 +286,32 @@ fn HomePage(cx: Scope) -> impl IntoView {
     use_subscribe(cx, "todos/+", move |e| async move {
         match e.name.as_str() {
             "Created" => {
-                todos.update(move |res| {
-                    let data = serde_json::from_value::<ReadTodo>(e.data).unwrap();
-                    res.as_mut().unwrap().as_mut().unwrap().push(data);
-                });
+                // todos.update(move |res| {
+                //     let data = serde_json::from_value::<ReadTodo>(e.data).unwrap();
+                //     res.as_mut().unwrap().as_mut().unwrap().push(data);
+                // });
             }
             "Deleted" => {
-                let id = e
-                    .data
-                    .as_object()
-                    .unwrap()
-                    .get("id")
-                    .unwrap()
-                    .as_i64()
-                    .unwrap();
+                // let id = e
+                //     .data
+                //     .as_object()
+                //     .unwrap()
+                //     .get("id")
+                //     .unwrap()
+                //     .as_i64()
+                //     .unwrap();
 
-                todos.update(move |res| {
-                    *res.as_mut().unwrap().as_mut().unwrap() = res
-                        .as_ref()
-                        .unwrap()
-                        .as_ref()
-                        .unwrap()
-                        .iter()
-                        .cloned()
-                        .filter(|todo| todo.id != id)
-                        .collect::<Vec<_>>();
-                });
+                // todos.update(move |res| {
+                //     *res.as_mut().unwrap().as_mut().unwrap() = res
+                //         .as_ref()
+                //         .unwrap()
+                //         .as_ref()
+                //         .unwrap()
+                //         .iter()
+                //         .cloned()
+                //         .filter(|todo| todo.id != id)
+                //         .collect::<Vec<_>>();
+                // });
             }
             _ => {}
         }

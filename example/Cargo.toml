@@ -6,10 +6,6 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[profile.release]
-codegen-units = 1
-lto = true
-
 [dependencies]
 pikav-client = { path = "../pikav-client", version = "0.16.0" }
 actix-web = "4.3.1"
@@ -20,12 +16,12 @@ actix-web = { version = "4", optional = true, features = ["macros"] }
 console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"
 cfg-if = "1.0.0"
-leptos = { git = "https://github.com/leptos-rs/leptos", default-features = false, features = [
+leptos = { version = "0.2.5", default-features = false, features = [
   "serde",
 ] }
-leptos_meta = { git = "https://github.com/leptos-rs/leptos", default-features = false }
-leptos_actix = { git = "https://github.com/leptos-rs/leptos", optional = true }
-leptos_router = { git = "https://github.com/leptos-rs/leptos", default-features = false }
+leptos_meta = { version = "0.2.5", default-features = false }
+leptos_actix = { version = "0.2.5", optional = true }
+leptos_router = { version = "0.2.5", default-features = false }
 log = "0.4.17"
 simple_logger = "4.1.0"
 wasm-bindgen = "0.2.84"
@@ -34,7 +30,7 @@ serde_json = { version = "1.0.96"}
 sqlx = { version = "0.6.3", optional = true, features = [ "runtime-actix-rustls", "sqlite" ] }
 rand = { version = "0.8.5", optional = true }
 futures = { version = "0.3.28", optional = true }
-reqwest = { version = "0.11.16", feature = ["json"] }
+reqwest = { version = "0.11.16", features = ["json"] }
 
 [features]
 default = []
