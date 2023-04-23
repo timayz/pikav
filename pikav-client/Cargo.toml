@@ -1,14 +1,12 @@
 [package]
 name = "pikav-client"
-version = "0.15.1"
+version = "0.15.2"
 edition = "2021"
 license = "Apache-2.0"
 description = "A client that help you publish to pikav server"
 repository = "https://github.com/timada-org/pikav"
 homepage = "https://pikav.timada.co"
 documentation = "https://docs.rs/pikav-client"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 serde = { version = "1.0.160", features = ["derive"] }

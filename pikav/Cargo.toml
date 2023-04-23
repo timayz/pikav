@@ -1,6 +1,6 @@
 [package]
 name = "pikav"
-version = "0.15.1"
+version = "0.15.2"
 edition = "2021"
 license = "Apache-2.0"
 description = "A library that help you send event to client with topic subscription"
@@ -8,10 +8,8 @@ repository = "https://github.com/timada-org/pikav"
 homepage = "https://pikav.timada.co"
 documentation = "https://docs.rs/pikav"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-thiserror = { version = "1.0.40"}
+thiserror = { version = "1.0.40" }
 regex = { version = "1.7.3" }
 lazy_static = { version = "1.4.0" }
 tokio = { version = "1.27.0", features = ["full"], optional = true }
@@ -22,8 +20,8 @@ serde_json = { version = "1.0.96", optional = true }
 [features]
 event = []
 publisher = [
-    "dep:nanoid",
-    "dep:tokio",
-    "dep:serde_json",
-    "event"
+	"dep:nanoid",
+	"dep:tokio",
+	"dep:serde_json",
+	"event",
 ]
