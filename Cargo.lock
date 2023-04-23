@@ -1595,6 +1595,7 @@ name = "pikav-web"
 version = "0.15.0"
 dependencies = [
  "anyhow",
+ "cfg-if",
  "futures",
  "gloo-net",
  "log",
