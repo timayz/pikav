@@ -35,7 +35,7 @@ cfg_if! {
             use_context::<Vec<Client>>(cx)
                 .expect("Pikav provider not configured correctly")
                 .get(id)
-                .expect(&format!("to get client {id}"))
+                .unwrap_or_else(|| panic!("to get client {id}"))
                 .clone()
         }
     } else {
@@ -67,7 +67,7 @@ cfg_if! {
         {
             let unsubscribe = use_client_with(cx, id).subscribe(filter, listener);
 
-            on_cleanup(cx, move || unsubscribe());
+            on_cleanup(cx, unsubscribe);
         }
     } else {
         pub fn use_subscribe_with<Fut>(
