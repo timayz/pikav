@@ -227,11 +227,7 @@ fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
             .unwrap_or("john".to_owned())
     };
 
-    let client_info = create_resource(
-        cx,
-        user_id,
-        move |user_id| get_client_info(cx, user_id),
-    );
+    let client_info = create_resource(cx, user_id, move |user_id| get_client_info(cx, user_id));
 
     let children = Rc::new(children);
 
@@ -240,7 +236,11 @@ fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
         {
             let children = children.clone();
 
-            client_info.read(cx).and_then(|res| res.ok()).map(move |info| view! {cx, <ConfigurePikav info=info>{children(cx)}</ConfigurePikav>})
+            move || {
+                let children = children.clone();
+
+                client_info.read(cx).and_then(|res| res.ok()).map(move |info| view! {cx, <ConfigurePikav info=info>{children(cx)}</ConfigurePikav>})
+            }
         }
         </Suspense>
     }
@@ -277,11 +277,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
     };
     let create_todo = create_server_multi_action::<CreateTodo>(cx);
     let delete_todo = create_server_action::<DeleteTodo>(cx);
-    let todos = create_resource(
-        cx,
-        user_id,
-        move |user_id| get_todos(cx, user_id),
-    );
+    let todos = create_resource(cx, user_id, move |user_id| get_todos(cx, user_id));
 
     use_subscribe(cx, "todos/+", move |e| async move {
         match e.name.as_str() {
