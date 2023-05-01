@@ -209,7 +209,7 @@ pub fn App(cx: Scope) -> impl IntoView {
             <Configure>
                 <main>
                     <Routes>
-                        <Route path="" view=|cx| view! { cx, <HomePage/> }/>
+                        <Route path="" view=|cx| view! { cx, <HomePage/>}/>
                     </Routes>
                 </main>
             </Configure>
@@ -228,20 +228,22 @@ fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
     };
 
     let client_info = create_resource(cx, user_id, move |user_id| get_client_info(cx, user_id));
-
     let children = Rc::new(children);
 
     view! {cx,
-        <Suspense fallback=|| view! {cx, ""}>
-        {
-            let children = children.clone();
-
-            move || {
+        <Suspense fallback=|| ()>
+            {
                 let children = children.clone();
+                view! {cx, <Show
+                    when=move || client_info.read(cx).is_some()
+                    fallback=|_| ()>
+                    {
+                        let children = children.clone();
 
-                client_info.read(cx).and_then(|res| res.ok()).map(move |info| view! {cx, <ConfigurePikav info=info>{children(cx)}</ConfigurePikav>})
+                        client_info.with(cx, move |res| res.clone().map(|info| view! {cx, <ConfigurePikav info=info>{move || children(cx)}</ConfigurePikav>}))
+                    }
+                </Show>}
             }
-        }
         </Suspense>
     }
 }
@@ -282,32 +284,32 @@ fn HomePage(cx: Scope) -> impl IntoView {
     use_subscribe(cx, "todos/+", move |e| async move {
         match e.name.as_str() {
             "Created" => {
-                // todos.update(move |res| {
-                //     let data = serde_json::from_value::<ReadTodo>(e.data).unwrap();
-                //     res.as_mut().unwrap().as_mut().unwrap().push(data);
-                // });
+                todos.update(move |res| {
+                    let data = serde_json::from_value::<ReadTodo>(e.data).unwrap();
+                    res.as_mut().unwrap().as_mut().unwrap().push(data);
+                });
             }
             "Deleted" => {
-                // let id = e
-                //     .data
-                //     .as_object()
-                //     .unwrap()
-                //     .get("id")
-                //     .unwrap()
-                //     .as_i64()
-                //     .unwrap();
+                let id = e
+                    .data
+                    .as_object()
+                    .unwrap()
+                    .get("id")
+                    .unwrap()
+                    .as_i64()
+                    .unwrap();
 
-                // todos.update(move |res| {
-                //     *res.as_mut().unwrap().as_mut().unwrap() = res
-                //         .as_ref()
-                //         .unwrap()
-                //         .as_ref()
-                //         .unwrap()
-                //         .iter()
-                //         .cloned()
-                //         .filter(|todo| todo.id != id)
-                //         .collect::<Vec<_>>();
-                // });
+                todos.update(move |res| {
+                    *res.as_mut().unwrap().as_mut().unwrap() = res
+                        .as_ref()
+                        .unwrap()
+                        .as_ref()
+                        .unwrap()
+                        .iter()
+                        .cloned()
+                        .filter(|todo| todo.id != id)
+                        .collect::<Vec<_>>();
+                });
             }
             _ => {}
         }
