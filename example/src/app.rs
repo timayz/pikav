@@ -5,7 +5,6 @@ use leptos_router::*;
 use pikav_web::leptos::{pikav_context, use_subscribe};
 use pikav_web::{Client, Headers};
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
@@ -228,22 +227,15 @@ fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
     };
 
     let client_info = create_resource(cx, user_id, move |user_id| get_client_info(cx, user_id));
-    let children = Rc::new(children);
+    let children = store_value(cx, children);
 
     view! {cx,
         <Suspense fallback=|| ()>
-            {
-                let children = children.clone();
-                view! {cx, <Show
-                    when=move || client_info.read(cx).is_some()
-                    fallback=|_| ()>
-                    {
-                        let children = children.clone();
-
-                        client_info.with(cx, move |res| res.clone().map(|info| view! {cx, <ConfigurePikav info=info>{move || children(cx)}</ConfigurePikav>}))
-                    }
-                </Show>}
-            }
+            <Show
+                when=move || client_info.read(cx).is_some()
+                fallback=|_| ()>
+                {client_info.with(cx, move |res| res.clone().map(|info| view! {cx, <ConfigurePikav info=info>{move || children.with_value(|children| children(cx))}</ConfigurePikav>}))}
+            </Show>
         </Suspense>
     }
 }
