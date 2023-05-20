@@ -231,11 +231,7 @@ fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
 
     view! {cx,
         <Suspense fallback=|| ()>
-            <Show
-                when=move || client_info.read(cx).is_some()
-                fallback=|_| ()>
-                {client_info.with(cx, move |res| res.clone().map(|info| view! {cx, <ConfigurePikav info=info>{move || children.with_value(|children| children(cx))}</ConfigurePikav>}))}
-            </Show>
+            {move || client_info.with(cx, move |res| res.clone().map(|info| view! {cx, <ConfigurePikav info=info>{move || children.with_value(|children| children(cx))}</ConfigurePikav>}))}
         </Suspense>
     }
 }
