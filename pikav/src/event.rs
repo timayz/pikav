@@ -1,23 +1,23 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
-use crate::topic::TopicName;
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Event<D, M> {
-    pub topic: TopicName,
+    pub topic: String,
     pub name: String,
     pub data: D,
     pub metadata: Option<M>,
+    pub filters: Option<Vec<String>>,
 }
 
 impl<D, M> Event<D, M> {
-    pub fn with_metadata(topic: TopicName, name: impl Into<String>, data: D) -> Self {
+    pub fn with_metadata(topic: impl Into<String>, name: impl Into<String>, data: D) -> Self {
         Event {
-            topic,
+            topic: topic.into(),
             name: name.into(),
             data,
             metadata: None::<M>,
+            filters: None,
         }
     }
 
@@ -26,15 +26,22 @@ impl<D, M> Event<D, M> {
 
         self
     }
+
+    pub fn filters(mut self, value: Vec<String>) -> Self {
+        self.filters = Some(value);
+
+        self
+    }
 }
 
 impl<D> Event<D, bool> {
-    pub fn new(topic: TopicName, name: impl Into<String>, data: D) -> Self {
+    pub fn new(topic: impl Into<String>, name: impl Into<String>, data: D) -> Self {
         Event {
-            topic,
+            topic: topic.into(),
             name: name.into(),
             data,
             metadata: None::<bool>,
+            filters: None,
         }
     }
 }

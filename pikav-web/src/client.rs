@@ -6,7 +6,7 @@ use pikav::Event;
 use serde_json::Value;
 
 cfg_if! {
-    if #[cfg(feature = "leptos-hydrate")] {
+    if #[cfg(feature = "hydrate")] {
         use std::{cell::RefCell, pin::Pin, rc::Rc};
         use std::{
             collections::HashSet,
@@ -18,7 +18,6 @@ cfg_if! {
             http::{Request, Response},
         };
         use log::error;
-        use pikav::{topic::TopicFilter};
         use wasm_bindgen_futures::spawn_local;
 
         type HeadersFut = Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<Headers>>>>>;
@@ -27,7 +26,7 @@ cfg_if! {
 }
 
 cfg_if! {
-    if #[cfg(feature = "leptos-hydrate")] {
+    if #[cfg(feature = "hydrate")] {
         #[derive(Clone)]
         pub struct Client {
             id: Rc<RefCell<Option<String>>>,
@@ -37,7 +36,7 @@ cfg_if! {
             namespace: String,
             next_listener_id: Rc<AtomicUsize>,
             get_headers: Rc<RefCell<Option<HeadersFut>>>,
-            listeners: Rc<RefCell<Vec<(usize, TopicFilter, ListenerFut)>>>,
+            listeners: Rc<RefCell<Vec<(usize, String, ListenerFut)>>>,
         }
     } else {
         #[derive(Clone)]
@@ -53,7 +52,7 @@ impl Client {
         let endpoint = endpoint.into();
 
         cfg_if! {
-            if #[cfg(feature = "leptos-hydrate")] {
+            if #[cfg(feature = "hydrate")] {
                 Self {
                     id: Rc::default(),
                     get_headers: Rc::default(),
@@ -75,7 +74,7 @@ impl Client {
 
     pub fn run(self) -> Result<Self> {
         cfg_if! {
-            if #[cfg(feature = "leptos-hydrate")] {
+            if #[cfg(feature = "hydrate")] {
                 let mut source = gloo_net::eventsource::futures::EventSource::new(&self.source_url)?;
                 let mut stream = source.subscribe("message")?;
                 *self.source.borrow_mut() = Some(source);
@@ -139,8 +138,10 @@ impl Client {
                         let listeners_fut = {
                             let mut listeners_fut = Vec::new();
                             for (_, filter, listener) in listeners.borrow().iter() {
-                                if filter.get_matcher().is_match(&event.topic) {
-                                    listeners_fut.push(listener(event.clone()));
+                                if let Some(filters) = &event.filters {
+                                    if filters.iter().any(|f| f == filter) {
+                                        listeners_fut.push(listener(event.clone()));
+                                    }
                                 }
                             }
                             listeners_fut
@@ -169,7 +170,7 @@ impl Client {
 
     pub fn close(&self) {
         cfg_if! {
-            if #[cfg(feature = "leptos-hydrate")] {
+            if #[cfg(feature = "hydrate")] {
                 if let Some(source) = self.source.borrow().as_ref() {
                     source.clone().close();
                 }
@@ -178,7 +179,7 @@ impl Client {
     }
 
     cfg_if! {
-        if #[cfg(feature = "leptos-hydrate")] {
+        if #[cfg(feature = "hydrate")] {
             pub fn get_headers<Fu>(self, cb: impl Fn() -> Fu + 'static) -> Self
             where
                 Fu: Future<Output = Result<Headers>> + 'static,
@@ -198,7 +199,7 @@ impl Client {
         }
     }
     cfg_if! {
-        if #[cfg(feature = "leptos-hydrate")] {
+        if #[cfg(feature = "hydrate")] {
             pub fn subscribe<Fu>(
                 &self,
                 filter: impl Into<String>,
@@ -207,8 +208,7 @@ impl Client {
             where
                 Fu: Future<Output = ()> + 'static + Send,
             {
-                let filter = TopicFilter::new(format!("{}/{}", self.namespace, filter.into()))
-                    .unwrap_or_else(|e| panic!("{e}"));
+                let filter = format!("{}/{}", self.namespace, filter.into());
                 let id = self.next_listener_id.fetch_add(1, Ordering::Relaxed);
                 let listeners = self.listeners.clone();
 
@@ -276,7 +276,7 @@ impl Client {
 }
 
 cfg_if! {
-    if #[cfg(feature = "leptos-hydrate")] {
+    if #[cfg(feature = "hydrate")] {
         #[derive(Clone)]
         struct Fetcher {
             endpoint: String,
@@ -288,7 +288,7 @@ cfg_if! {
                 &self,
                 client_id: &str,
                 action: impl Into<String>,
-                filter: &TopicFilter,
+                filter: &str,
             ) -> Result<Response> {
                 let filter = filter.to_string();
                 let mut req = Request::put(&format!("{}/{}/{}", self.endpoint, action.into(), filter));

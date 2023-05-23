@@ -20,5 +20,5 @@ log = { version = "0.4.17", optional = true }
 cfg-if = "1.0.0"
 
 [features]
-default = []
+default = ["hydrate"]
 hydrate = ["dep:wasm-bindgen-futures", "dep:log"]

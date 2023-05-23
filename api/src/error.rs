@@ -1,15 +1,11 @@
 use actix_web::{http::StatusCode, HttpResponse, HttpResponseBuilder, ResponseError};
 
-use pikav::topic::TopicFilterError;
 use thiserror::Error as ThisError;
 
 #[derive(ThisError, Debug)]
 pub enum ApiError {
     #[error("internal server error")]
     InternalServerError(String),
-
-    #[error("{0}")]
-    BadRequest(String),
 
     #[error("not found")]
     NotFound,
@@ -25,7 +21,6 @@ impl ResponseError for ApiError {
     fn status_code(&self) -> StatusCode {
         match *self {
             ApiError::InternalServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            ApiError::BadRequest(_) => StatusCode::BAD_REQUEST,
             ApiError::NotFound => StatusCode::NOT_FOUND,
         }
     }
@@ -46,12 +41,6 @@ impl ResponseError for ApiError {
 impl From<serde_json::Error> for ApiError {
     fn from(e: serde_json::Error) -> Self {
         ApiError::InternalServerError(e.to_string())
-    }
-}
-
-impl From<TopicFilterError> for ApiError {
-    fn from(e: TopicFilterError) -> Self {
-        ApiError::BadRequest(e.to_string())
     }
 }
 

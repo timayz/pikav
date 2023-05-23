@@ -922,6 +922,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "glob-match"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9985c9503b412198aa4197559e9a318524ebc4519c229bfa05a535828c950b9d"
+
+[[package]]
 name = "gloo-net"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1529,9 +1535,8 @@ dependencies = [
 name = "pikav"
 version = "0.15.2"
 dependencies = [
- "lazy_static",
+ "glob-match",
  "nanoid",
- "regex",
  "serde",
  "serde_json",
  "thiserror",
@@ -1547,7 +1552,6 @@ dependencies = [
  "actix-web",
  "futures-core",
  "futures-util",
- "lazy_static",
  "parking_lot 0.12.1",
  "pikav",
  "pikav-client",
