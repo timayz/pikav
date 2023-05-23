@@ -108,32 +108,29 @@ impl Client {
                             (event.topic.as_ref(), event.name.as_ref()),
                             ("$SYS/session", "Created")
                         ) {
-                            let reconnected = { id.borrow().is_some() };
                             *id.borrow_mut() = event.data.as_str().map(|v| v.to_owned());
 
                             let mut subscribed = HashSet::new();
 
-                            if reconnected {
-                                if let Some(client_id) = event.data.as_str() {
-                                    let filters = {
-                                        listeners
-                                            .borrow()
-                                            .iter()
-                                            .map(|(_, f, _)| f.to_owned())
-                                            .collect::<Vec<_>>()
-                                    };
+                            if let Some(client_id) = event.data.as_str() {
+                                let filters = {
+                                    listeners
+                                        .borrow()
+                                        .iter()
+                                        .map(|(_, f, _)| f.to_owned())
+                                        .collect::<Vec<_>>()
+                                };
 
-                                    for filter in filters {
-                                        if subscribed.contains(&filter) {
-                                            continue;
-                                        }
-
-                                        if let Err(e) = fetcher.fetch(client_id, "subscribe", &filter).await {
-                                            error!("{e}");
-                                        }
-
-                                        subscribed.insert(filter);
+                                for filter in filters {
+                                    if subscribed.contains(&filter) {
+                                        continue;
                                     }
+
+                                    if let Err(e) = fetcher.fetch(client_id, "subscribe", &filter).await {
+                                        error!("{e}");
+                                    }
+
+                                    subscribed.insert(filter);
                                 }
                             }
                         }

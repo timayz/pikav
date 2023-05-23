@@ -269,7 +269,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
     let delete_todo = create_server_action::<DeleteTodo>(cx);
     let todos = create_resource(cx, user_id, move |user_id| get_todos(cx, user_id));
 
-    use_subscribe(cx, "todos/+", move |e| async move {
+    use_subscribe(cx, "todos/*", move |e| async move {
         match e.name.as_str() {
             "Created" => {
                 todos.update(move |res| {
