@@ -205,13 +205,13 @@ pub fn App(cx: Scope) -> impl IntoView {
 
         // content for this welcome page
         <Router>
-            <Configure>
+            
                 <main>
                     <Routes>
-                        <Route path="" view=|cx| view! { cx, <HomePage/>}/>
+                        <Route path="" view=|cx| view! { cx, <Configure><HomePage/></Configure>}/>
                     </Routes>
                 </main>
-            </Configure>
+            
         </Router>
     }
 }
@@ -219,32 +219,19 @@ pub fn App(cx: Scope) -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn Configure(cx: Scope, children: ChildrenFn) -> impl IntoView {
-    let query = use_query_map(cx);
-    let user_id = move || {
-        query
-            .with(|params| params.get("user").cloned())
-            .unwrap_or("john".to_owned())
-    };
+    // let query = use_query_map(cx);
+    // let user_id = move || {
+    //     query
+    //         .with(|params| params.get("user").cloned())
+    //         .unwrap_or("john".to_owned())
+    // };
 
-    let client_info = create_resource(cx, user_id, move |user_id| get_client_info(cx, user_id));
-    let children = store_value(cx, children);
-
-    view! {cx,
-        <Suspense fallback=|| ()>
-            {move || client_info.with(cx, move |res| res.clone().map(|info| view! {cx, <ConfigurePikav info=info>{move || children.with_value(|children| children(cx))}</ConfigurePikav>}))}
-        </Suspense>
-    }
-}
-
-#[component]
-fn ConfigurePikav(cx: Scope, children: Children, info: ClientInfo) -> impl IntoView {
-    let client = Client::new(info.endpoint)
+    let client = Client::new("http://127.0.0.1:6750")
         .namespace("example")
         .get_headers(move || {
-            let token = info.auth_token.to_owned();
             async move {
                 let headers = Headers::new();
-                headers.set("Authorization", token.as_str());
+                headers.set("Authorization", "Bearer eyJraWQiOiJkZWZhdWx0LXJzYS1rZXktaWQiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJkZWZhdWx0LWF1ZGllbmNlIiwic3ViIjoiam9obkBjbGllbnRzIiwiYXpwIjoiam9obiIsImlzcyI6ImRlZmF1bHQtaXNzdWVyIiwiZXhwIjoxNjg0ODgzODI4LCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJpYXQiOjE2ODQ4ODAyMjh9.IfFH_wJln-MBRQeL4kHNO6NwAuM3YL0fcDsNHn6nIUvIfbCW5Te3opo-Yn7Renyro0e8p_-WDF-Fdo0YSCzE5He15c4-cX7S_O7PlQUeI1MGheUNN-QTHQNWaSJmC-zjRqr1oLMy9P6GDr6-jNQiMxqcrda20o_O4eJVHGMQF-9tOKDvJjZojUKXLY3m6Io9C71PiTw0RpNUxCWZ-p5Hu_E6fWu_PwWoOqXm6rrbuJkw1unoRmGw0c5NrPwzDN6b3WrZGZY4oHrgEYybhsBFLAA1zapJNWN9TwYU6TsR8apv0AkrNPj8ZCIH3zeXcjeVJP9snzHho06kAr4mNrQQxg");
                 Ok(headers)
             }
         })
@@ -254,16 +241,47 @@ fn ConfigurePikav(cx: Scope, children: Children, info: ClientInfo) -> impl IntoV
     pikav_context(cx, client);
 
     children(cx)
+
+    // let client_info = create_resource(cx, user_id, move |user_id| get_client_info(cx, user_id));
+    // let children = store_value(cx, children);
+
+    // view! {cx,
+    //     <Suspense fallback=|| ()>
+    //         {move || client_info.with(cx, move |res| res.clone().map(|info| view! {cx, <ConfigurePikav info=info>{move || children.with_value(|children| children(cx))}</ConfigurePikav>}))}
+    //     </Suspense>
+    // }
 }
+
+// #[component]
+// fn ConfigurePikav(cx: Scope, children: Children, info: ClientInfo) -> impl IntoView {
+//     let client = Client::new(info.endpoint)
+//         .namespace("example")
+//         .get_headers(move || {
+//             let token = info.auth_token.to_owned();
+//             async move {
+//                 let headers = Headers::new();
+//                 headers.set("Authorization", token.as_str());
+//                 Ok(headers)
+//             }
+//         })
+//         .run()
+//         .unwrap();
+
+//     pikav_context(cx, client);
+
+//     children(cx)
+// }
 
 /// Renders the home page of your application.
 #[component]
 fn HomePage(cx: Scope) -> impl IntoView {
     let query = use_query_map(cx);
     let user_id = move || {
-        query
+        let user = query
             .with(|params| params.get("user").cloned())
-            .unwrap_or("john".to_owned())
+            .unwrap_or("john".to_owned());
+
+        format!("{}@clients", user)
     };
     let create_todo = create_server_multi_action::<CreateTodo>(cx);
     let delete_todo = create_server_action::<DeleteTodo>(cx);
