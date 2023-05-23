@@ -36,7 +36,7 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
                     name: e.name.to_owned(),
                     data: e.data.clone().into(),
                     metadata: e.metadata.clone().map(Into::into),
-                    filters: None
+                    filters: None,
                 },
                 user_id: e.user_id.to_owned(),
             });

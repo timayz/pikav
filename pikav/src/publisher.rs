@@ -1,3 +1,4 @@
+use glob_match::glob_match;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -13,13 +14,10 @@ use tokio::{
     },
     time::{interval_at, Instant},
 };
-use glob_match::glob_match;
 
 pub use tokio::sync::mpsc::Receiver;
 
-use crate::{
-    event::Event,
-};
+use crate::event::Event;
 
 #[derive(Debug)]
 pub enum Error {
@@ -113,10 +111,13 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
     ) -> Result<(), TrySendError<T>> {
         let rw_filters = self.filters.read().await;
 
-        let filters = rw_filters.iter().filter_map(|filter| match glob_match(filter, &event.topic) {
-            true => Some(filter.to_owned()),
-            false => None,
-        }).collect::<Vec<_>>();
+        let filters = rw_filters
+            .iter()
+            .filter_map(|filter| match glob_match(filter, &event.topic) {
+                true => Some(filter.to_owned()),
+                false => None,
+            })
+            .collect::<Vec<_>>();
 
         if !filters.is_empty() {
             self.send(event.filters(filters))?;
@@ -206,11 +207,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         let c = Client::new(tx);
 
         let sent = c
-            .send(Event::new(
-                "$SYS/session",
-                "Created",
-                id.to_owned(),
-            ))
+            .send(Event::new("$SYS/session", "Created", id.to_owned()))
             .is_ok();
 
         if !sent {
@@ -279,7 +276,10 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         Ok(())
     }
 
-    pub async fn publish<D: Serialize + Clone, M: Serialize + Clone>(&self, events: Vec<&Message<D, M>>) {
+    pub async fn publish<D: Serialize + Clone, M: Serialize + Clone>(
+        &self,
+        events: Vec<&Message<D, M>>,
+    ) {
         let user_clients = self.user_clients.read().await;
         let clients = self.clients.read().await;
 
