@@ -18,7 +18,6 @@ use client::{SubscribeRequest, UnsubscribeRequest};
 use error::ApiError;
 use extractor::Client as ReqClient;
 use futures_core::Stream;
-use pikav::topic::TopicFilter;
 use serde::Deserialize;
 use serde_json::json;
 
@@ -34,10 +33,9 @@ async fn subscribe(
     jwt: JwtPayload,
 ) -> Result<HttpResponse, ApiError> {
     let params = params.into_inner();
-    let filter = TopicFilter::new(params.0.to_owned())?;
 
     publisher
-        .subscribe(filter, &jwt.subject, &client.0)
+        .subscribe(params.0.to_owned(), &jwt.subject, &client.0)
         .await
         .ok();
 
@@ -62,10 +60,9 @@ async fn unsubscribe(
     nodes: Data<Vec<client::Client>>,
 ) -> Result<HttpResponse, ApiError> {
     let params = params.into_inner();
-    let filter = TopicFilter::new(params.0.to_owned())?;
 
     publisher
-        .unsubscribe(filter, &jwt.subject, &client.0)
+        .unsubscribe(params.0.to_owned(), &jwt.subject, &client.0)
         .await
         .ok();
 

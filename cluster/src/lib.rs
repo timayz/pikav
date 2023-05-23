@@ -1,7 +1,6 @@
 use bytes::Bytes;
 use pikav::{
     publisher::{Message, Publisher},
-    topic::{TopicFilter, TopicName},
     Event,
 };
 use pikav_client::{
@@ -31,17 +30,13 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
         let mut messages: Vec<Message<Value, Value>> = Vec::new();
 
         for e in req.events.iter() {
-            let topic = match TopicName::new(e.topic.to_owned()) {
-                Ok(name) => name,
-                Err(e) => return Err(Status::invalid_argument(e.to_string())),
-            };
-
             messages.push(Message {
                 event: Event {
-                    topic,
+                    topic: e.topic.to_owned(),
                     name: e.name.to_owned(),
                     data: e.data.clone().into(),
                     metadata: e.metadata.clone().map(Into::into),
+                    filters: None,
                 },
                 user_id: e.user_id.to_owned(),
             });
@@ -64,13 +59,8 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
     ) -> Result<Response<SubscribeReply>, Status> {
         let req = request.into_inner();
 
-        let filter = match TopicFilter::new(req.filter) {
-            Ok(filter) => filter,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
         self.publisher
-            .subscribe(filter, req.user_id, req.client_id)
+            .subscribe(req.filter, req.user_id, req.client_id)
             .await
             .ok();
 
@@ -83,13 +73,8 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
     ) -> Result<Response<UnsubscribeReply>, Status> {
         let req = request.into_inner();
 
-        let filter = match TopicFilter::new(req.filter) {
-            Ok(filter) => filter,
-            Err(e) => return Err(Status::invalid_argument(e.to_string())),
-        };
-
         self.publisher
-            .unsubscribe(filter, req.user_id, req.client_id)
+            .unsubscribe(req.filter, req.user_id, req.client_id)
             .await
             .ok();
 

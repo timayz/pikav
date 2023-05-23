@@ -1,3 +1,4 @@
+use glob_match::glob_match;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -16,10 +17,7 @@ use tokio::{
 
 pub use tokio::sync::mpsc::Receiver;
 
-use crate::{
-    event::Event,
-    topic::{TopicFilter, TopicName},
-};
+use crate::event::Event;
 
 #[derive(Debug)]
 pub enum Error {
@@ -30,7 +28,7 @@ pub enum Error {
 pub struct Client<T: From<String> + Clone + Debug + Sync + Send + 'static> {
     user_id: RwLock<Option<String>>,
     sender: Sender<T>,
-    filters: RwLock<Vec<TopicFilter>>,
+    filters: RwLock<Vec<String>>,
 }
 
 impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
@@ -66,7 +64,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
             .is_err()
     }
 
-    pub async fn insert(&self, filter: TopicFilter) -> bool {
+    pub async fn insert(&self, filter: String) -> bool {
         {
             let filters = self.filters.read().await;
 
@@ -81,7 +79,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
         true
     }
 
-    pub async fn remove(&self, filter: TopicFilter) -> bool {
+    pub async fn remove(&self, filter: String) -> bool {
         {
             let filters = self.filters.read().await;
 
@@ -98,9 +96,9 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
 
     pub fn send<D: Serialize, M: Serialize>(
         &self,
-        event: &Event<D, M>,
+        event: Event<D, M>,
     ) -> Result<(), TrySendError<T>> {
-        let message = serde_json::to_string(event).unwrap();
+        let message = serde_json::to_string(&event).unwrap();
 
         self.sender
             .clone()
@@ -109,14 +107,20 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
 
     pub async fn filter_send<D: Serialize, M: Serialize>(
         &self,
-        event: &Event<D, M>,
+        event: Event<D, M>,
     ) -> Result<(), TrySendError<T>> {
-        let filters = self.filters.read().await;
+        let rw_filters = self.filters.read().await;
 
-        for filter in filters.iter() {
-            if filter.get_matcher().is_match(&event.topic) {
-                self.send(event)?;
-            }
+        let filters = rw_filters
+            .iter()
+            .filter_map(|filter| match glob_match(filter, &event.topic) {
+                true => Some(filter.to_owned()),
+                false => None,
+            })
+            .collect::<Vec<_>>();
+
+        if !filters.is_empty() {
+            self.send(event.filters(filters))?;
         }
 
         Ok(())
@@ -203,11 +207,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         let c = Client::new(tx);
 
         let sent = c
-            .send(&Event::new(
-                TopicName::new("$SYS/session").unwrap(),
-                "Created",
-                id.to_owned(),
-            ))
+            .send(Event::new("$SYS/session", "Created", id.to_owned()))
             .is_ok();
 
         if !sent {
@@ -222,7 +222,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
     pub async fn subscribe(
         &self,
-        filter: TopicFilter,
+        filter: String,
         user_id: impl Into<String>,
         client_id: impl Into<String>,
     ) -> Result<(), Error> {
@@ -254,7 +254,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
     pub async fn unsubscribe(
         &self,
-        filter: TopicFilter,
+        filter: String,
         user_id: impl Into<String>,
         client_id: impl Into<String>,
     ) -> Result<(), Error> {
@@ -276,7 +276,10 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         Ok(())
     }
 
-    pub async fn publish<D: Serialize, M: Serialize>(&self, events: Vec<&Message<D, M>>) {
+    pub async fn publish<D: Serialize + Clone, M: Serialize + Clone>(
+        &self,
+        events: Vec<&Message<D, M>>,
+    ) {
         let user_clients = self.user_clients.read().await;
         let clients = self.clients.read().await;
 
@@ -288,7 +291,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
             for id in ids {
                 if let Some(client) = clients.get(id) {
-                    let _ = client.filter_send(&event.event).await;
+                    let _ = client.filter_send(event.event.clone()).await;
                 }
             }
         }
