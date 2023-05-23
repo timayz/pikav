@@ -205,13 +205,13 @@ pub fn App(cx: Scope) -> impl IntoView {
 
         // content for this welcome page
         <Router>
-            
+            <Configure>
                 <main>
                     <Routes>
-                        <Route path="" view=|cx| view! { cx, <Configure><HomePage/></Configure>}/>
+                        <Route path="" view=|cx| view! { cx, <HomePage/>}/>
                     </Routes>
                 </main>
-            
+            </Configure>
         </Router>
     }
 }
