@@ -138,10 +138,13 @@ impl Client {
                         let listeners_fut = {
                             let mut listeners_fut = Vec::new();
                             for (_, filter, listener) in listeners.borrow().iter() {
-                                if let Some(filters) = &event.filters {
-                                    if filters.iter().any(|f| f == filter) {
-                                        listeners_fut.push(listener(event.clone()));
-                                    }
+                                let filters = match &event.filters {
+                                    Some(v) => v,
+                                    _ => continue,
+                                };
+
+                                if filters.iter().any(|f| f == filter) {
+                                    listeners_fut.push(listener(event.clone()));
                                 }
                             }
                             listeners_fut
