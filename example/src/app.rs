@@ -174,7 +174,7 @@ cfg_if! {
                                 "endpoint" => Some(cookie.value().to_owned()),
                                 _ => None
                             });
-                            
+
                             ClientInfo { auth_token, endpoint }
                         })
                         .ok()

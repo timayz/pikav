@@ -21,8 +21,8 @@ cfg_if! {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
-    use actix_web::{dev::Service, cookie::Cookie};
     use actix_web::*;
+    use actix_web::{cookie::Cookie, dev::Service};
     use example::app::*;
     use leptos::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
@@ -94,7 +94,8 @@ async fn main() -> std::io::Result<()> {
                         .await
                         .unwrap();
 
-                    let auth_token = format!("{} {}", token_resp.token_type, token_resp.access_token);
+                    let auth_token =
+                        format!("{} {}", token_resp.token_type, token_resp.access_token);
 
                     let _ = response.add_cookie(&Cookie::build("auth_token", auth_token).finish());
 
