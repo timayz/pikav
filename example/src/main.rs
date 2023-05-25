@@ -1,7 +1,27 @@
+use cfg_if::cfg_if;
+
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        use serde::{Serialize, Deserialize};
+
+        #[derive(Debug, Serialize, Deserialize)]
+        pub struct TokenResp {
+            pub token_type: String,
+            pub access_token: String,
+        }
+
+        #[derive(Debug, Deserialize)]
+        pub struct Params {
+            user: Option<String>,
+        }
+    }
+}
+
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
+    use actix_web::{dev::Service, cookie::Cookie};
     use actix_web::*;
     use example::app::*;
     use leptos::*;
@@ -40,8 +60,55 @@ async fn main() -> std::io::Result<()> {
                 routes.to_owned(),
                 |cx| view! { cx, <App/> },
             )
+            .wrap_fn(|req, srv| {
+                let accept_html = req
+                    .headers()
+                    .get("Accept")
+                    .and_then(|v| v.to_str().ok())
+                    .map(|v| v.contains("text/html"))
+                    .unwrap_or(false);
+
+                let params = web::Query::<Params>::from_query(req.query_string()).unwrap();
+                let user = params.user.to_owned().unwrap_or("john".to_owned());
+
+                let fut = srv.call(req);
+
+                Box::pin(async move {
+                    let mut res = fut.await?;
+
+                    if !accept_html {
+                        return Ok(res);
+                    }
+
+                    let response = res.response_mut();
+
+                    let token_resp: TokenResp = reqwest::Client::new()
+                        .post("http://127.0.0.1:6550/oauth/token")
+                        .header("Accept", "application/json")
+                        .header("Content-Type", "application/json")
+                        .json(&serde_json::json!({ "client_id": user }))
+                        .send()
+                        .await
+                        .unwrap()
+                        .json()
+                        .await
+                        .unwrap();
+
+                    let auth_token = format!("{} {}", token_resp.token_type, token_resp.access_token);
+
+                    let _ = response.add_cookie(&Cookie::build("auth_token", auth_token).finish());
+
+                    let endpoint = format!(
+                        "http://127.0.0.1:{}",
+                        std::env::var("PIKAV_API_PORT").unwrap()
+                    );
+
+                    let _ = response.add_cookie(&Cookie::build("endpoint", endpoint).finish());
+
+                    Ok(res)
+                })
+            })
             .service(Files::new("/", site_root))
-        //.wrap(middleware::Compress::default())
     })
     .bind(&addr)?
     .run()

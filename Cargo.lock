@@ -1091,6 +1091,7 @@ dependencies = [
  "simple_logger",
  "sqlx",
  "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
