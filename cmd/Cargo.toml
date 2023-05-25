@@ -1,13 +1,13 @@
 [package]
 name = "cmd"
-version = "0.16.0"
+version = "0.17.0"
 edition = "2021"
 publish = false
 
 [dependencies]
-pikav-api = { path = "../api", version = "0.16.0" }
-pikav-cluster = { path = "../cluster", version = "0.16.0" }
-pikav-client = { path = "../pikav-client", version = "0.16.0" }
+pikav-api = { path = "../api", version = "0.17.0" }
+pikav-cluster = { path = "../cluster", version = "0.17.0" }
+pikav-client = { path = "../pikav-client", version = "0.17.0" }
 config = "0.13.3"
 serde = "1.0.160"
 serde_json = "1.0.96"
