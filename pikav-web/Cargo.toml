@@ -20,6 +20,7 @@ log = { version = "0.4.17", optional = true }
 cfg-if = "1.0.0"
 leptos = { version = "0.3.0", default-features = false, features = [
   "serde",
+  "stable"
 ], optional = true }
 
 [features]

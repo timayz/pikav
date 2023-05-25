@@ -188,7 +188,7 @@ cfg_if! {
 
             let doc = document().unchecked_into::<web_sys::HtmlDocument>();
             let cookies = doc.cookie().unwrap_or_default();
-            let mut cookies = cookies.split("; ").collect::<Vec<_>>();
+            let cookies = cookies.split("; ").collect::<Vec<_>>();
 
             let auth_token = cookies.iter().find_map(|cookie| {
                 let cookie = cookie.split("=").collect::<Vec<_>>();
