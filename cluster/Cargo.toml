@@ -1,12 +1,12 @@
 [package]
 name = "pikav-cluster"
-version = "0.17.0"
+version = "0.17.1"
 edition = "2021"
 publish = false
 
 [dependencies]
-pikav = { path = "../pikav", features = ["publisher"], version = "0.17.0" }
-pikav-client = { path = "../pikav-client", version = "0.17.0" }
+pikav = { path = "../pikav", features = ["publisher"], version = "0.17.1" }
+pikav-client = { path = "../pikav-client", version = "0.17.1" }
 tonic = { version = "0.9.1", features = ["tls"] }
 prost = "0.11.9"
 bytes = "1.4.0"
