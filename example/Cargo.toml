@@ -1,6 +1,6 @@
 [package]
 name = "example"
-version = "0.17.1"
+version = "0.17.2"
 edition = "2021"
 publish = false
 
@@ -26,8 +26,8 @@ lib-default-features = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pikav-web = { path = "../pikav-web", version = "0.17.1", features = ["leptos"] }
-pikav-client = { path = "../pikav-client", version = "0.17.1", optional = true }
+pikav-web = { path = "../pikav-web", version = "0.17.2", features = ["leptos"] }
+pikav-client = { path = "../pikav-client", version = "0.17.2", optional = true }
 actix-files = { version = "0.6", optional = true }
 actix-web = { version = "4.3", optional = true, features = ["macros"] }
 console_error_panic_hook = "0.1"
