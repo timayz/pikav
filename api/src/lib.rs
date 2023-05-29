@@ -19,7 +19,7 @@ use extractor::Client as ReqClient;
 use futures_core::Stream;
 use serde::Deserialize;
 use serde_json::json;
-use twa_jwks::{JwksClient, actix_web::JwtPayload};
+use twa_jwks::{actix_web::JwtPayload, JwksClient};
 
 pub use pikav::publisher::{Publisher, Receiver};
 pub use pikav_client as client;
