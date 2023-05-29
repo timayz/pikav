@@ -5,7 +5,6 @@ pub mod extractor;
 use std::io::Error;
 
 use actix_cors::Cors;
-use actix_jwks::{JwksClient, JwtPayload};
 use actix_web::{
     error::ErrorInternalServerError,
     get,
@@ -20,9 +19,15 @@ use extractor::Client as ReqClient;
 use futures_core::Stream;
 use serde::Deserialize;
 use serde_json::json;
+use twa_jwks::{actix_web::JwtPayload, JwksClient};
 
 pub use pikav::publisher::{Publisher, Receiver};
 pub use pikav_client as client;
+
+#[derive(Deserialize)]
+struct JwtClaims {
+    pub sub: String,
+}
 
 #[put(r"/subscribe/{filter:.*}")]
 async fn subscribe(
@@ -30,12 +35,12 @@ async fn subscribe(
     publisher: Data<Publisher<Bytes>>,
     client: ReqClient,
     nodes: Data<Vec<client::Client>>,
-    jwt: JwtPayload,
+    JwtPayload(payload): JwtPayload<JwtClaims>,
 ) -> Result<HttpResponse, ApiError> {
     let params = params.into_inner();
 
     publisher
-        .subscribe(params.0.to_owned(), &jwt.subject, &client.0)
+        .subscribe(params.0.to_owned(), &payload.sub, &client.0)
         .await
         .ok();
 
@@ -43,7 +48,7 @@ async fn subscribe(
         node.subscribe(SubscribeRequest {
             filter: params.0.to_owned(),
             client_id: client.0.to_owned(),
-            user_id: jwt.subject.to_owned(),
+            user_id: payload.sub.to_owned(),
         })
         .await?;
     }
@@ -56,13 +61,13 @@ async fn unsubscribe(
     params: web::Path<(String,)>,
     publisher: Data<Publisher<Bytes>>,
     client: ReqClient,
-    jwt: JwtPayload,
+    JwtPayload(payload): JwtPayload<JwtClaims>,
     nodes: Data<Vec<client::Client>>,
 ) -> Result<HttpResponse, ApiError> {
     let params = params.into_inner();
 
     publisher
-        .unsubscribe(params.0.to_owned(), &jwt.subject, &client.0)
+        .unsubscribe(params.0.to_owned(), &payload.sub, &client.0)
         .await
         .ok();
 
@@ -70,7 +75,7 @@ async fn unsubscribe(
         node.unsubscribe(UnsubscribeRequest {
             filter: params.0.to_owned(),
             client_id: client.0.to_owned(),
-            user_id: jwt.subject.to_owned(),
+            user_id: payload.sub.to_owned(),
         })
         .await?;
     }
