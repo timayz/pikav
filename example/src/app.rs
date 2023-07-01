@@ -15,10 +15,10 @@ cfg_if! {
         use std::time::Duration;
         use serde_json::json;
 
-        pub fn register_server_functions() {
-            _ = GetTodos::register();
-            _ = CreateTodo::register();
-            _ = DeleteTodo::register();
+        #[derive(Debug, Serialize, Deserialize)]
+        pub struct TokenResp {
+            pub token_type: String,
+            pub access_token: String,
         }
     }
 }
@@ -40,10 +40,37 @@ pub struct ReadTodo {
     pub done: bool,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ClientInfo {
-    pub auth_token: Option<String>,
-    pub endpoint: Option<String>,
+    pub auth_token: String,
+    pub endpoint: String,
+}
+
+#[server(GetClientInfo, "/api")]
+pub async fn get_client_info(cx: Scope, user_id: String) -> Result<ClientInfo, ServerFnError> {
+    let token_resp: TokenResp = reqwest::Client::new()
+        .post("http://127.0.0.1:6550/oauth/token")
+        .header("Accept", "application/json")
+        .header("Content-Type", "application/json")
+        .json(&serde_json::json!({ "client_id": user_id }))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+
+    let auth_token = format!("{} {}", token_resp.token_type, token_resp.access_token);
+
+    let endpoint = format!(
+        "http://127.0.0.1:{}",
+        std::env::var("PIKAV_API_PORT").unwrap()
+    );
+
+    Ok(ClientInfo {
+        auth_token,
+        endpoint,
+    })
 }
 
 #[server(GetTodos, "/api")]
@@ -158,59 +185,6 @@ async fn delete_todo(cx: Scope, user_id: String, id: i64) -> Result<(), ServerFn
     Ok(())
 }
 
-cfg_if! {
-    if #[cfg(feature = "ssr")] {
-        fn initial_config(cx: Scope) -> ClientInfo {
-            use_context::<actix_web::HttpRequest>(cx)
-                .and_then(|req| {
-                    req.cookies()
-                        .map(|cookies| {
-                            let auth_token = cookies.iter().find_map(|cookie| match cookie.name() {
-                                "auth_token" => Some(cookie.value().to_owned()),
-                                _ => None
-                            });
-
-                            let endpoint = cookies.iter().find_map(|cookie| match cookie.name() {
-                                "endpoint" => Some(cookie.value().to_owned()),
-                                _ => None
-                            });
-
-                            ClientInfo { auth_token, endpoint }
-                        })
-                        .ok()
-
-                })
-                .unwrap_or_default()
-        }
-    } else {
-        fn initial_config(_cx: Scope) -> ClientInfo {
-            use wasm_bindgen::JsCast;
-
-            let doc = document().unchecked_into::<web_sys::HtmlDocument>();
-            let cookies = doc.cookie().unwrap_or_default();
-            let cookies = cookies.split("; ").collect::<Vec<_>>();
-
-            let auth_token = cookies.iter().find_map(|cookie| {
-                let cookie = cookie.split("=").collect::<Vec<_>>();
-                match cookie[0] {
-                    "auth_token" => Some(cookie[1].to_owned()),
-                    _ => None
-                }
-            });
-
-            let endpoint = cookies.iter().find_map(|cookie| {
-                let cookie = cookie.split("=").collect::<Vec<_>>();
-                match cookie[0] {
-                    "endpoint" => Some(cookie[1].to_owned()),
-                    _ => None
-                }
-            });
-
-            ClientInfo { auth_token, endpoint }
-        }
-    }
-}
-
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -228,37 +202,62 @@ pub fn App(cx: Scope) -> impl IntoView {
 
         // content for this welcome page
         <Router>
-            <Pikav>
-                <main>
-                    <Routes>
-                        <Route path="" view=|cx| view! { cx, <HomePage/>}/>
-                    </Routes>
-                </main>
-            </Pikav>
+            <AppConfig>
+                <Pikav>
+                  <main>
+                      <Routes>
+                          <Route path="" view=|cx| view! { cx, <HomePage/>}/>
+                      </Routes>
+                  </main>
+                </Pikav>
+            </AppConfig>
         </Router>
     }
 }
 
 #[component]
-fn Pikav(cx: Scope, children: Children) -> impl IntoView {
-    let info = initial_config(cx);
+fn AppConfig(cx: Scope, children: ChildrenFn) -> impl IntoView {
+    let query = use_query_map(cx);
+    let user_id = move || {
+        query
+            .with(|params| params.get("user").cloned())
+            .unwrap_or("john".to_owned())
+    };
 
-    if let (Some(auth_token), Some(endpoint)) = (info.auth_token, info.endpoint) {
-        let client = Client::new(endpoint)
-            .namespace("example")
-            .get_headers(move || {
-                let auth_token = auth_token.to_owned();
-                async move {
-                    let headers = Headers::new();
-                    headers.set("Authorization", &auth_token);
-                    Ok(headers)
-                }
-            })
-            .run()
-            .unwrap();
+    let app_config = create_resource(cx, user_id, move |user_id| get_client_info(cx, user_id));
+    let children = store_value(cx, children);
 
-        pikav_context(cx, client);
+    view! {cx,
+      <Suspense fallback=|| ()>
+      {move ||
+          app_config.with(cx, |config|
+                config.clone().map(|config|{
+                    provide_context(cx, config);
+                      children.with_value(|children| children(cx))}
+                                     )
+            )
+      }
+      </Suspense>
     }
+}
+
+#[component]
+fn Pikav(cx: Scope, children: Children) -> impl IntoView {
+    let info = use_context::<ClientInfo>(cx).unwrap_or_default();
+    let client = Client::new(info.endpoint)
+        .namespace("example")
+        .get_headers(move || {
+            let auth_token = info.auth_token.to_owned();
+            async move {
+                let headers = Headers::new();
+                headers.set("Authorization", &auth_token);
+                Ok(headers)
+            }
+        })
+        .run()
+        .unwrap();
+
+    pikav_context(cx, client);
 
     children(cx)
 }
@@ -326,7 +325,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
 
         <Suspense fallback=move || view! { cx, <p>"Loading todos..."</p> }>
             <ul>
-            {
+            {move ||
                 todos.with(cx, |todos| {
                     todos.clone().map(|todos| {
                         todos.into_iter().map(|todo|{

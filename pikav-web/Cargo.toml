@@ -18,10 +18,7 @@ futures = "0.3"
 wasm-bindgen-futures = { version = "0.4", optional = true }
 log = { version = "0.4", optional = true }
 cfg-if = "1.0"
-leptos = { version = "0.3", default-features = false, features = [
-	"serde",
-	"stable",
-], optional = true }
+leptos = { version = "0.4", features = ["serde"], optional = true }
 
 [features]
 default = []
