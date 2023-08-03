@@ -11,6 +11,6 @@ tonic = { version = "0.9", features = ["tls"] }
 prost = "0.11"
 bytes = "1.4"
 tracing = "0.1"
-tokio = { version = "1.27", features = [ "rt-multi-thread", "time", "fs", "macros", "net" ] }
+tokio = { version = "1.29", features = [ "rt-multi-thread", "time", "fs", "macros", "net" ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
