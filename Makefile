@@ -47,8 +47,32 @@ clippy:
 	cargo clippy --fix --all-features -- -D warnings
 	cargo clippy --all-features -- -D warnings
 
+test:
+	cargo test
+
 fmt:
 	cargo fmt -- --emit files
+
+deny:
+	cargo deny check
+
+udeps:
+	cargo udeps -p cmd -p pikav-api -p pikav-cluster -p pikav -p pikav-client -p pikav-web
+
+udeps.leptos:
+	cargo udeps --features ssr,hydrate -p example
+
+advisory.clean:
+	rm -rf ~/.cargo/advisory-db
+
+pants: advisory.clean
+	cargo pants
+
+audit: advisory.clean
+	cargo audit
+
+outdated:
+	cargo outdated
 
 token:
 	curl -X POST http://127.0.0.1:6550/oauth/token \

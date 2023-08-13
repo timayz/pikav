@@ -2,7 +2,7 @@
 name = "pikav-cluster"
 version = "0.17.4"
 edition = "2021"
-publish = false
+license = "Apache-2.0"
 
 [dependencies]
 pikav = { path = "../pikav", features = ["publisher"], version = "0.17.4" }

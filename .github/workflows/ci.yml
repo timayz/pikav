@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths-ignore: 
+      - "**/Cargo.toml"
+      - "Cargo.lock"
+
+jobs:
+  test:
+    uses: timayz/.github/.github/workflows/service-testing.yml@v2.20.0
+    with:
+      db_name: pikav

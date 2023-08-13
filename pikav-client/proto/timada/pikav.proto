@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package timada;
 
-option go_package = "github.com/timada-org/pikav-go/proto/timada";
+option go_package = "github.com/timayz/pikav-go/proto/timada";
 
 service Pikav {
     rpc Publish(PublishRequest) returns (PublishReply) {}

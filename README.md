@@ -11,7 +11,7 @@ version: "3.9"
 
 services:
   pikav-eu-west-1a:
-    image: timada0/pikav
+    image: timayz/pikav
     command: serve -c /etc/config/pikav.yml
     ports:
       - "6750:6750"
@@ -25,7 +25,7 @@ services:
           - eu-west-1a.pikav.internal
 
   pikav-eu-west-1b:
-    image: timada0/pikav
+    image: timayz/pikav
     command: serve -c /etc/config/pikav.yml
     ports:
       - "6751:6750"
@@ -39,7 +39,7 @@ services:
           - eu-west-1b.pikav.internal
 
   pikav-us-west-1a:
-    image: timada0/pikav
+    image: timayz/pikav
     command: serve -c /etc/config/pikav.yml
     ports:
       - "6752:6750"
@@ -53,7 +53,7 @@ services:
           - us-west-1a.pikav.internal
 
   pikav-us-west-1a:
-    image: timada0/pikav
+    image: timayz/pikav
     command: serve -c /etc/config/pikav.yml
     ports:
       - "6753:6750"

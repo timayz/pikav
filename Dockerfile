@@ -1,13 +1,12 @@
-ARG BUILDER_IMAGE=rust@sha256:9178d58b0f144a93b1dba5317d55ef32e42c67d8da71aa63ff56a4bc66f9a888
+# syntax=docker/dockerfile:1
 
-FROM ${BUILDER_IMAGE} as builder
+FROM rust:1.71-alpine3.17 AS chef
 
 RUN apk add --no-cache musl-dev tzdata \
         openssl-dev openssl-libs-static \
         pkgconf git libpq-dev \
         protoc protobuf-dev
 
-# Create cobase
 ENV USER=pikav
 ENV UID=10001
 
@@ -26,34 +25,40 @@ RUN adduser \
 # https://github.com/rust-lang/pkg-config-rs/blob/54325785816695df031cef3b26b6a9a203bbc01b/src/lib.rs#L613
 ENV SYSROOT=/dummy
 
-# The env vars tell libsqlite3-sys to statically link libsqlite3.
-# ENV SQLITE3_STATIC=1 SQLITE3_LIB_DIR=/usr/lib/
-
 # The env var tells pkg-config-rs to statically link libpq.
 ENV LIBPQ_STATIC=1
 
-WORKDIR /home/pikav
-COPY . /home/pikav
+RUN rustup target add wasm32-unknown-unknown
 
-RUN cargo build --bin cmd --release
+RUN cargo install cargo-chef
+
+WORKDIR /app
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+
+# Build dependencies - this is the caching Docker layer!
+
+RUN cargo chef cook --release --package=cmd --recipe-path recipe.json
+
+# Build application
+
+COPY . .
+
+RUN cargo build --release --bin cmd --package cmd
 
 FROM scratch
-# ARG version=unknown
-# ARG release=unreleased
-# LABEL name="Product Name" \
-#       maintainer="info@company.com" \
-#       vendor="Company AG" \
-#       version=${version} \
-#       release=${release} \
-#       summary="High-level summary" \
-#       description="A bit more details about this specific container"
 
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 
-COPY --from=builder /home/pikav/target/release/cmd /usr/bin/pikav
+COPY --from=builder /app/target/release/cmd /usr/bin/pikav
 
 USER pikav:pikav
 
