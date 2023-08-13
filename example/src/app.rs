@@ -47,7 +47,7 @@ pub struct ClientInfo {
 }
 
 #[server(GetClientInfo, "/api")]
-pub async fn get_client_info(cx: Scope, user_id: String) -> Result<ClientInfo, ServerFnError> {
+pub async fn get_client_info(user_id: String) -> Result<ClientInfo, ServerFnError> {
     let token_resp: TokenResp = reqwest::Client::new()
         .post("http://127.0.0.1:6550/oauth/token")
         .header("Accept", "application/json")
@@ -74,8 +74,8 @@ pub async fn get_client_info(cx: Scope, user_id: String) -> Result<ClientInfo, S
 }
 
 #[server(GetTodos, "/api")]
-pub async fn get_todos(cx: Scope, user_id: String) -> Result<Vec<ReadTodo>, ServerFnError> {
-    let req = use_context::<HttpRequest>(cx).unwrap();
+pub async fn get_todos(user_id: String) -> Result<Vec<ReadTodo>, ServerFnError> {
+    let req = use_context::<HttpRequest>().unwrap();
     let pool = actix_web::web::Data::<SqlitePool>::extract(&req)
         .await
         .unwrap();
@@ -89,7 +89,7 @@ WHERE user_id = ?1
         "#,
     )
     .bind(user_id)
-    .fetch_all(&mut conn)
+    .fetch_all(&mut *conn)
     .await
     .unwrap();
 
@@ -97,8 +97,8 @@ WHERE user_id = ?1
 }
 
 #[server(CreateTodo, "/api")]
-async fn create_todo(cx: Scope, user_id: String, text: String) -> Result<(), ServerFnError> {
-    let req = use_context::<HttpRequest>(cx).unwrap();
+async fn create_todo(user_id: String, text: String) -> Result<(), ServerFnError> {
+    let req = use_context::<HttpRequest>().unwrap();
     let client = actix_web::web::Data::<pikav_client::Client>::extract(&req)
         .await
         .unwrap();
@@ -110,7 +110,7 @@ async fn create_todo(cx: Scope, user_id: String, text: String) -> Result<(), Ser
     let id = sqlx::query("INSERT INTO todos ( text, user_id ) VALUES ( ?1, ?2 )")
         .bind(text.to_owned())
         .bind(user_id.to_owned())
-        .execute(&mut conn)
+        .execute(&mut *conn)
         .await
         .unwrap()
         .last_insert_rowid();
@@ -141,8 +141,8 @@ async fn create_todo(cx: Scope, user_id: String, text: String) -> Result<(), Ser
 }
 
 #[server(DeleteTodo, "/api")]
-async fn delete_todo(cx: Scope, user_id: String, id: i64) -> Result<(), ServerFnError> {
-    let req = use_context::<HttpRequest>(cx).unwrap();
+async fn delete_todo(user_id: String, id: i64) -> Result<(), ServerFnError> {
+    let req = use_context::<HttpRequest>().unwrap();
     let client = actix_web::web::Data::<pikav_client::Client>::extract(&req)
         .await
         .unwrap();
@@ -154,7 +154,7 @@ async fn delete_todo(cx: Scope, user_id: String, id: i64) -> Result<(), ServerFn
     let rows_affected = sqlx::query("DELETE FROM todos WHERE id = ?1 AND user_id = ?2")
         .bind(id.to_owned())
         .bind(user_id.to_owned())
-        .execute(&mut conn)
+        .execute(&mut *conn)
         .await
         .unwrap()
         .rows_affected();
@@ -186,13 +186,11 @@ async fn delete_todo(cx: Scope, user_id: String, id: i64) -> Result<(), ServerFn
 }
 
 #[component]
-pub fn App(cx: Scope) -> impl IntoView {
+pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
-    provide_meta_context(cx);
+    provide_meta_context();
 
     view! {
-        cx,
-
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/example.css"/>
@@ -206,7 +204,7 @@ pub fn App(cx: Scope) -> impl IntoView {
                 <Pikav>
                   <main>
                       <Routes>
-                          <Route path="" view=|cx| view! { cx, <HomePage/>}/>
+                          <Route path="" view=|| view! { <HomePage/>}/>
                       </Routes>
                   </main>
                 </Pikav>
@@ -216,24 +214,24 @@ pub fn App(cx: Scope) -> impl IntoView {
 }
 
 #[component]
-fn AppConfig(cx: Scope, children: ChildrenFn) -> impl IntoView {
-    let query = use_query_map(cx);
+fn AppConfig(children: ChildrenFn) -> impl IntoView {
+    let query = use_query_map();
     let user_id = move || {
         query
             .with(|params| params.get("user").cloned())
             .unwrap_or("john".to_owned())
     };
 
-    let app_config = create_resource(cx, user_id, move |user_id| get_client_info(cx, user_id));
-    let children = store_value(cx, children);
+    let app_config = create_resource(user_id, get_client_info);
+    let children = store_value(children);
 
-    view! {cx,
+    view! {
       <Suspense fallback=|| ()>
       {move ||
-          app_config.with(cx, |config|
+          app_config.with(|config|
                 config.clone().map(|config|{
-                    provide_context(cx, config);
-                      children.with_value(|children| children(cx))}
+                    provide_context(config);
+                      children.with_value(|children| children())}
                                      )
             )
       }
@@ -242,8 +240,8 @@ fn AppConfig(cx: Scope, children: ChildrenFn) -> impl IntoView {
 }
 
 #[component]
-fn Pikav(cx: Scope, children: Children) -> impl IntoView {
-    let info = use_context::<ClientInfo>(cx).unwrap_or_default();
+fn Pikav(children: Children) -> impl IntoView {
+    let info = use_context::<ClientInfo>().unwrap_or_default();
     let client = Client::new(info.endpoint)
         .namespace("example")
         .get_headers(move || {
@@ -257,15 +255,15 @@ fn Pikav(cx: Scope, children: Children) -> impl IntoView {
         .run()
         .unwrap();
 
-    pikav_context(cx, client);
+    pikav_context(client);
 
-    children(cx)
+    children()
 }
 
 /// Renders the home page of your application.
 #[component]
-fn HomePage(cx: Scope) -> impl IntoView {
-    let query = use_query_map(cx);
+fn HomePage() -> impl IntoView {
+    let query = use_query_map();
     let user_id = move || {
         let user = query
             .with(|params| params.get("user").cloned())
@@ -273,11 +271,11 @@ fn HomePage(cx: Scope) -> impl IntoView {
 
         format!("{}@clients", user)
     };
-    let create_todo = create_server_multi_action::<CreateTodo>(cx);
-    let delete_todo = create_server_action::<DeleteTodo>(cx);
-    let todos = create_resource(cx, user_id, move |user_id| get_todos(cx, user_id));
+    let create_todo = create_server_multi_action::<CreateTodo>();
+    let delete_todo = create_server_action::<DeleteTodo>();
+    let todos = create_resource(user_id, get_todos);
 
-    use_subscribe(cx, "todos/*", move |e| async move {
+    use_subscribe("todos/*", move |e| async move {
         match e.name.as_str() {
             "Created" => {
                 todos.update(move |res| {
@@ -311,7 +309,7 @@ fn HomePage(cx: Scope) -> impl IntoView {
         }
     });
 
-    view! { cx,
+    view! {
         <h1>"Welcome to Pikav!"</h1>
 
         <MultiActionForm action=create_todo>
@@ -323,13 +321,13 @@ fn HomePage(cx: Scope) -> impl IntoView {
             <input type="submit" value="Create" />
         </MultiActionForm>
 
-        <Suspense fallback=move || view! { cx, <p>"Loading todos..."</p> }>
+        <Suspense fallback=move || view! { <p>"Loading todos..."</p> }>
             <ul>
             {move ||
-                todos.with(cx, |todos| {
+                todos.with(|todos| {
                     todos.clone().map(|todos| {
                         todos.into_iter().map(|todo|{
-                            view! { cx,
+                            view! {
                                 <li>
                                     {&todo.text}
                                     <ActionForm action=delete_todo>
