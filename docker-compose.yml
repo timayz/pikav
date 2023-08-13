@@ -8,7 +8,7 @@ services:
       - 6550:80
 
   pikav:
-    image: timada0/pikav
+    image: timayz-dev/pikav
     profiles:
       - standalone
     depends_on:

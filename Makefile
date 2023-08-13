@@ -47,6 +47,9 @@ clippy:
 	cargo clippy --fix --all-features -- -D warnings
 	cargo clippy --all-features -- -D warnings
 
+test:
+	cargo test
+
 fmt:
 	cargo fmt -- --emit files
 
