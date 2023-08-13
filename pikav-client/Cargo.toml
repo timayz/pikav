@@ -3,6 +3,7 @@ name = "pikav-client"
 version = "0.17.4"
 edition = "2021"
 license = "Apache-2.0"
+publish = true
 description = "A client that help you publish to pikav server"
 repository = "https://github.com/timada-org/pikav"
 homepage = "https://pikav.timada.co"
