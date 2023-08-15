@@ -3870,9 +3870,9 @@ checksum = "3528ecfd12c466c6f163363caf2d02a71161dd5e1cc6ae7b34207ea2d42d81ed"
 
 [[package]]
 name = "twa-jwks"
-version = "1.1.2"
+version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a18f7cea0f5c1eff6ea44f3983a17f39593225c5d5c795b9db9b5e71110ba43c"
+checksum = "a5b096ddf765b62ed340225b73d1bdd00a6de4de0d8f83c4c0da3f93da7c2402"
 dependencies = [
  "actix-web",
  "base64 0.21.2",
