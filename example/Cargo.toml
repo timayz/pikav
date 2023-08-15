@@ -28,24 +28,24 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 pikav-web = { path = "../pikav-web", version = "0.17.5", features = ["leptos"] }
 pikav-client = { path = "../pikav-client", version = "0.17.5", optional = true }
-actix-files = { version = "0.6", optional = true }
-actix-web = { version = "4.3", optional = true, features = ["macros"] }
-console_error_panic_hook = "0.1"
-console_log = "1.0"
-cfg-if = "1.0"
+actix-files = { version = "0.6.2", optional = true }
+actix-web = { version = "4.3.1", optional = true, features = ["macros"] }
+console_error_panic_hook = "0.1.7"
+console_log = "1.0.0"
+cfg-if = "1.0.0"
 leptos = { version = "0.5.0-beta", features = ["serde"] }
 leptos_meta = { version = "0.5.0-beta" }
 leptos_actix = { version = "0.5.0-beta", optional = true }
 leptos_router = { version = "0.5.0-beta" }
-log = "0.4"
-wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["HtmlDocument"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0" }
-sqlx = { version = "0.7", optional = true, features = [ "runtime-tokio", "sqlite" ] }
-rand = { version = "0.8", optional = true }
-futures = { version = "0.3", optional = true }
-reqwest = { version = "0.11", features = ["json"] }
+log = "0.4.20"
+wasm-bindgen = "0.2.87"
+web-sys = { version = "0.3.64", features = ["HtmlDocument"] }
+serde = { version = "1.0.183", features = ["derive"] }
+serde_json = { version = "1.0.104" }
+sqlx = { version = "0.7.1", optional = true, features = [ "runtime-tokio", "sqlite" ] }
+rand = { version = "0.8.5", optional = true }
+futures = { version = "0.3.28", optional = true }
+reqwest = { version = "0.11.18", features = ["json"] }
 
 [features]
 default = []

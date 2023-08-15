@@ -7,10 +7,10 @@ license = "Apache-2.0"
 [dependencies]
 pikav = { path = "../pikav", features = ["publisher"], version = "0.17.5" }
 pikav-client = { path = "../pikav-client", version = "0.17.5" }
-tonic = { version = "0.9", features = ["tls"] }
-prost = "0.11"
-bytes = "1.4"
-tracing = "0.1"
-tokio = { version = "1.29", features = [ "rt-multi-thread", "time", "fs", "macros", "net" ] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+tonic = { version = "0.9.2", features = ["tls"] }
+prost = "0.11.9"
+bytes = "1.4.0"
+tracing = "0.1.37"
+tokio = { version = "1.31.0", features = [ "rt-multi-thread", "time", "fs", "macros", "net" ] }
+serde = { version = "1.0.183", features = ["derive"] }
+serde_json = "1.0.104"
