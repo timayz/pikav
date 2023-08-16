@@ -11,6 +11,4 @@ on:
 
 jobs:
   test:
-    uses: timayz/.github/.github/workflows/service-testing.yml@v2.20.0
-    with:
-      db_name: pikav
+    uses: timayz/.github/.github/workflows/rust-testing.yml@v3.0.1

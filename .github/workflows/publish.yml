@@ -12,7 +12,7 @@ on:
 
 jobs:
   docker:
-    uses: timayz/.github/.github/workflows/docker.yml@v2.20.0
+    uses: timayz/.github/.github/workflows/docker.yml@v3.0.1
     with:
       image: timayz/pikav
       push: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -21,7 +21,7 @@ jobs:
       DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
   cargo:
-    uses: timayz/.github/.github/workflows/cargo-publish.yml@v2.20.0
+    uses: timayz/.github/.github/workflows/cargo-publish.yml@v3.0.1
     with:
       publish: ${{ startsWith(github.ref, 'refs/tags/v') }}
     secrets:
