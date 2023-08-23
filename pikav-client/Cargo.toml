@@ -10,12 +10,12 @@ homepage = "https://pikav.timada.co"
 documentation = "https://docs.rs/pikav-client"
 
 [dependencies]
-serde = { version = "1.0.183", features = ["derive"] }
-serde_json = "1.0.104"
+serde = { version = "1.0.185", features = ["derive"] }
+serde_json = "1.0.105"
 parking_lot = "0.12.1"
-tokio = "1.31.0"
+tokio = "1.32.0"
 tracing = "0.1.37"
-thiserror = "1.0.46"
+thiserror = "1.0.47"
 tonic = { version = "0.9.2", features = ["tls"] }
 prost = "0.11.9"
 prost-types = "0.11.9"

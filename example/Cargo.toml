@@ -40,12 +40,12 @@ leptos_router = { version = "0.5.0-beta" }
 log = "0.4.20"
 wasm-bindgen = "0.2.87"
 web-sys = { version = "0.3.64", features = ["HtmlDocument"] }
-serde = { version = "1.0.183", features = ["derive"] }
-serde_json = { version = "1.0.104" }
+serde = { version = "1.0.185", features = ["derive"] }
+serde_json = { version = "1.0.105" }
 sqlx = { version = "0.7.1", optional = true, features = [ "runtime-tokio", "sqlite" ] }
 rand = { version = "0.8.5", optional = true }
 futures = { version = "0.3.28", optional = true }
-reqwest = { version = "0.11.18", features = ["json"] }
+reqwest = { version = "0.11.19", features = ["json"] }
 
 [features]
 default = []
