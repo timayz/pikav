@@ -11,4 +11,4 @@ on:
 
 jobs:
   test:
-    uses: timayz/.github/.github/workflows/rust-test.yml@v3.0.1
+    uses: timayz/.github/.github/workflows/rust-test.yml@v3
