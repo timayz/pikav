@@ -13,7 +13,7 @@ documentation = "https://docs.rs/pikav-client"
 pikav = { path = "../pikav", features = ["event"], version = "0.17.8" }
 anyhow = "1.0.75"
 gloo-net = "0.4.0"
-serde = { version = "1.0.185", features = ["derive"] }
+serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.105"
 futures = "0.3.28"
 wasm-bindgen-futures = { version = "0.4.37", optional = true }
