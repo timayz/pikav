@@ -2400,6 +2400,7 @@ dependencies = [
 name = "pikav"
 version = "0.17.9"
 dependencies = [
+ "futures",
  "glob-match",
  "nanoid",
  "serde",

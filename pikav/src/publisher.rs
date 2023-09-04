@@ -1,3 +1,4 @@
+use futures::StreamExt;
 use glob_match::glob_match;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
@@ -315,6 +316,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
     pub async fn publish(&self, events: Vec<&Message<SimpleEvent>>) {
         let user_clients = self.user_clients.read().await;
         let clients = self.clients.read().await;
+        let mut futures = Vec::new();
 
         for event in events {
             let ids = match user_clients.get(&event.user_id) {
@@ -324,10 +326,13 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
             for id in ids {
                 if let Some(client) = clients.get(id) {
-                    let _ = client.filter_send(event.event.clone()).await;
+                    futures.push(client.filter_send(event.event.clone()));
                 }
             }
         }
+
+        let stream = futures::stream::iter(futures).buffer_unordered(50);
+        let _ = stream.collect::<Vec<_>>().await;
     }
 
     pub async fn publish_events<D: Serialize + Clone, M: Serialize + Clone>(
@@ -336,6 +341,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
     ) {
         let user_clients = self.user_clients.read().await;
         let clients = self.clients.read().await;
+        let mut futures = Vec::new();
 
         for event in events {
             let ids = match user_clients.get(&event.user_id) {
@@ -345,10 +351,13 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
             for id in ids {
                 if let Some(client) = clients.get(id) {
-                    let _ = client.filter_send_event(event.event.clone()).await;
+                    futures.push(client.filter_send_event(event.event.clone()));
                 }
             }
         }
+
+        let stream = futures::stream::iter(futures).buffer_unordered(50);
+        let _ = stream.collect::<Vec<_>>().await;
     }
 }
 
