@@ -330,7 +330,7 @@ fn HomePage() -> impl IntoView {
                                 {&todo.text}
                                 <ActionForm action=delete_todo clone:todo>
                                     <input type="hidden" name="user_id" value={user_id()} />
-                                    <input type="hidden" name="id" value={&todo.text} />
+                                    <input type="hidden" name="id" value={todo.id} />
                                     <button type="submit">"X"</button>
                                 </ActionForm>
                             </li>

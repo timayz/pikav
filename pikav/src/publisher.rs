@@ -94,6 +94,10 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
         filters.is_empty()
     }
 
+    pub fn send_event_session_id(&self, id: impl Into<String>) -> Result<(), TrySendError<T>> {
+        self.send_event(Event::new("$SYS/session", "Created", id.into()))
+    }
+
     pub fn send_event<D: Serialize, M: Serialize>(
         &self,
         event: Event<D, M>,
@@ -241,11 +245,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         let (tx, rx) = channel::<T>(100);
         let client = Client::new(tx);
 
-        if send_id
-            && client
-                .send_event(Event::new("$SYS/session", "Created", id.to_owned()))
-                .is_err()
-        {
+        if send_id && client.send_event_session_id(&id).is_err() {
             return None;
         }
 
