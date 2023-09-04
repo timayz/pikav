@@ -27,7 +27,7 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
     ) -> Result<Response<PublishReply>, Status> {
         let req = request.into_inner();
 
-        let mut messages: Vec<Message<Value, Value>> = Vec::new();
+        let mut messages: Vec<Message<Event<Value, Value>>> = Vec::new();
 
         for e in req.events.iter() {
             messages.push(Message {
@@ -42,7 +42,7 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
             });
         }
 
-        self.publisher.publish(messages.iter().collect::<_>()).await;
+        self.publisher.publish_events(messages.iter().collect::<_>()).await;
 
         if req.propagate {
             for node in self.nodes.iter() {

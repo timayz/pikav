@@ -85,7 +85,7 @@ async fn unsubscribe(
 
 #[get("/events")]
 async fn events(publisher: Data<Publisher<Bytes>>) -> Result<HttpResponse, ApiError> {
-    let rx = match publisher.create_client().await {
+    let rx = match publisher.create_client(true).await {
         Some(rx) => rx,
         _ => {
             return ApiError::InternalServerError("Failed to create client".to_owned())
