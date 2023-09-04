@@ -42,7 +42,9 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
             });
         }
 
-        self.publisher.publish_events(messages.iter().collect::<_>()).await;
+        self.publisher
+            .publish_events(messages.iter().collect::<_>())
+            .await;
 
         if req.propagate {
             for node in self.nodes.iter() {
