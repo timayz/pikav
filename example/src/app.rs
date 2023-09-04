@@ -324,8 +324,8 @@ fn HomePage() -> impl IntoView {
         <Suspense fallback=move || view! { <p>"Loading todos..."</p> }>
             <ul>
             {move ||
-                todos.with(|todos| {
-                    todos.clone().map(|todos| {
+                todos.get().map(|todos| {
+                    todos.map(|todos| {
                         todos.into_iter().map(|todo|{
                             view! {
                                 <li>
