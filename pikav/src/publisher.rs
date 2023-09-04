@@ -241,11 +241,12 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         let (tx, rx) = channel::<T>(100);
         let client = Client::new(tx);
 
-        if send_id {
-            if let Err(_) = client.send_event(Event::new("$SYS/session", "Created", id.to_owned()))
-            {
-                return None;
-            }
+        if send_id
+            && client
+                .send_event(Event::new("$SYS/session", "Created", id.to_owned()))
+                .is_err()
+        {
+            return None;
         }
 
         let mut w = self.clients.write().await;
