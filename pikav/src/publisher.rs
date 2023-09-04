@@ -103,7 +103,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
         self.send(SimpleEvent {
             topic: event.topic,
             event: "message".to_owned(),
-            data: data,
+            data,
         })
     }
 
