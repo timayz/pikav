@@ -17,7 +17,7 @@ use tokio::{
 
 pub use tokio::sync::mpsc::Receiver;
 
-use crate::event::Event;
+use crate::event::{Event, SimpleEvent};
 
 #[derive(Debug)]
 pub enum Error {
@@ -94,18 +94,39 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
         filters.is_empty()
     }
 
-    pub fn send<D: Serialize, M: Serialize>(
+    pub fn send_event_session_id(&self, id: impl Into<String>) -> Result<(), TrySendError<T>> {
+        self.send_event(Event::new("$SYS/session", "Created", id.into()))
+    }
+
+    pub fn send_event<D: Serialize, M: Serialize>(
         &self,
         event: Event<D, M>,
     ) -> Result<(), TrySendError<T>> {
-        let message = serde_json::to_string(&event).unwrap();
+        let data = serde_json::to_string(&event).unwrap();
 
-        self.sender
-            .clone()
-            .try_send(["data: ", message.as_ref(), "\n\n"].concat().into())
+        self.send(SimpleEvent {
+            topic: event.topic,
+            event: "message".to_owned(),
+            data,
+        })
     }
 
-    pub async fn filter_send<D: Serialize, M: Serialize>(
+    pub fn send(&self, event: SimpleEvent) -> Result<(), TrySendError<T>> {
+        self.sender.clone().try_send(
+            [
+                "event: ",
+                event.event.as_ref(),
+                "\n",
+                "data: ",
+                event.data.as_ref(),
+                "\n\n",
+            ]
+            .concat()
+            .into(),
+        )
+    }
+
+    pub async fn filter_send_event<D: Serialize, M: Serialize>(
         &self,
         event: Event<D, M>,
     ) -> Result<(), TrySendError<T>> {
@@ -120,7 +141,25 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
             .collect::<Vec<_>>();
 
         if !filters.is_empty() {
-            self.send(event.filters(filters))?;
+            self.send_event(event.filters(filters))?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn filter_send(&self, event: SimpleEvent) -> Result<(), TrySendError<T>> {
+        let rw_filters = self.filters.read().await;
+
+        let filters = rw_filters
+            .iter()
+            .filter_map(|filter| match glob_match(filter, &event.topic) {
+                true => Some(filter.to_owned()),
+                false => None,
+            })
+            .collect::<Vec<_>>();
+
+        if !filters.is_empty() {
+            self.send(event)?;
         }
 
         Ok(())
@@ -128,8 +167,8 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Client<T> {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Message<D, M> {
-    pub event: Event<D, M>,
+pub struct Message<E> {
+    pub event: E,
     pub user_id: String,
 }
 
@@ -201,21 +240,18 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         }
     }
 
-    pub async fn create_client(&self) -> Option<Receiver<T>> {
+    pub async fn create_client(&self, send_id: bool) -> Option<Receiver<T>> {
         let id = nanoid!();
         let (tx, rx) = channel::<T>(100);
-        let c = Client::new(tx);
+        let client = Client::new(tx);
 
-        let sent = c
-            .send(Event::new("$SYS/session", "Created", id.to_owned()))
-            .is_ok();
-
-        if !sent {
+        if send_id && client.send_event_session_id(&id).is_err() {
             return None;
         }
 
         let mut w = self.clients.write().await;
-        w.insert(id, c);
+
+        w.insert(id, client);
 
         Some(rx)
     }
@@ -276,10 +312,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         Ok(())
     }
 
-    pub async fn publish<D: Serialize + Clone, M: Serialize + Clone>(
-        &self,
-        events: Vec<&Message<D, M>>,
-    ) {
+    pub async fn publish(&self, events: Vec<&Message<SimpleEvent>>) {
         let user_clients = self.user_clients.read().await;
         let clients = self.clients.read().await;
 
@@ -292,6 +325,27 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
             for id in ids {
                 if let Some(client) = clients.get(id) {
                     let _ = client.filter_send(event.event.clone()).await;
+                }
+            }
+        }
+    }
+
+    pub async fn publish_events<D: Serialize + Clone, M: Serialize + Clone>(
+        &self,
+        events: Vec<&Message<Event<D, M>>>,
+    ) {
+        let user_clients = self.user_clients.read().await;
+        let clients = self.clients.read().await;
+
+        for event in events {
+            let ids = match user_clients.get(&event.user_id) {
+                Some(clients) => clients,
+                None => continue,
+            };
+
+            for id in ids {
+                if let Some(client) = clients.get(id) {
+                    let _ = client.filter_send_event(event.event.clone()).await;
                 }
             }
         }

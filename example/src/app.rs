@@ -228,12 +228,11 @@ fn AppConfig(children: ChildrenFn) -> impl IntoView {
     view! {
       <Suspense fallback=|| ()>
       {move ||
-          app_config.with(|config|
-                config.clone().map(|config|{
-                    provide_context(config);
-                      children.with_value(|children| children())}
-                                     )
-            )
+          app_config.and_then(|config| {
+                provide_context(config.clone());
+
+                children.with_value(|children| children())
+            })
       }
       </Suspense>
     }
@@ -324,21 +323,19 @@ fn HomePage() -> impl IntoView {
         <Suspense fallback=move || view! { <p>"Loading todos..."</p> }>
             <ul>
             {move ||
-                todos.get().map(|todos| {
-                    todos.map(|todos| {
-                        todos.into_iter().map(|todo|{
-                            view! {
-                                <li>
-                                    {&todo.text}
-                                    <ActionForm action=delete_todo>
-                                        <input type="hidden" name="user_id" value={user_id()} />
-                                        <input type="hidden" name="id" value={todo.id} />
-                                        <button type="submit">"X"</button>
-                                    </ActionForm>
-                                </li>
-                            }
-                        }).collect::<Vec<_>>()
-                    })
+                todos.and_then(|data| {
+                    data.iter().map(|todo|{
+                        view! {
+                            <li>
+                                {&todo.text}
+                                <ActionForm action=delete_todo clone:todo>
+                                    <input type="hidden" name="user_id" value={user_id()} />
+                                    <input type="hidden" name="id" value={todo.id} />
+                                    <button type="submit">"X"</button>
+                                </ActionForm>
+                            </li>
+                        }
+                    }).collect_view()
                 })
             }
             </ul>

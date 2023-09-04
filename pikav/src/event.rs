@@ -2,6 +2,13 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SimpleEvent {
+    pub topic: String,
+    pub event: String,
+    pub data: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Event<D, M> {
     pub topic: String,
     pub name: String,
