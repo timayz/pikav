@@ -14,6 +14,7 @@ tokio = { version = "1.32.0", features = ["full"], optional = true }
 nanoid = { version = "0.4.0", optional = true }
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = { version = "1.0.105", optional = true }
+futures = { version = "0.3.28", optional = true }
 glob-match = "0.2.1"
 
 [features]
@@ -22,5 +23,6 @@ publisher = [
 	"dep:nanoid",
 	"dep:tokio",
 	"dep:serde_json",
+	"dep:futures",
 	"event",
 ]
