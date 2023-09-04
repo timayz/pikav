@@ -7,8 +7,8 @@ license = "Apache-2.0"
 [dependencies]
 pikav = { path = "../pikav", features = ["publisher"], version = "0.17.9" }
 pikav-client = { path = "../pikav-client", version = "0.17.9" }
-tonic = { version = "0.9.2", features = ["tls"] }
-prost = "0.11.9"
+tonic = { version = "0.10.0", features = ["tls"] }
+prost = "0.12.0"
 bytes = "1.4.0"
 tracing = "0.1.37"
 tokio = { version = "1.32.0", features = [ "rt-multi-thread", "time", "fs", "macros", "net" ] }
