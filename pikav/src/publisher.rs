@@ -241,7 +241,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         }
     }
 
-    pub async fn create_client(&self, send_id: bool) -> Option<Receiver<T>> {
+    pub async fn create_client(&self, send_id: bool) -> Option<(Receiver<T>, String)> {
         let id = nanoid!();
         let (tx, rx) = channel::<T>(100);
         let client = Client::new(tx);
@@ -252,9 +252,9 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
         let mut w = self.clients.write().await;
 
-        w.insert(id, client);
+        w.insert(id.to_owned(), client);
 
-        Some(rx)
+        Some((rx, id))
     }
 
     pub async fn subscribe(
