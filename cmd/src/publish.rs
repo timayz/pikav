@@ -32,7 +32,7 @@ impl Publish {
         })
         .unwrap();
 
-        client.publish(vec![Event {
+        client.publish_events(vec![Event {
             user_id: "hubert@client".to_owned(),
             topic: "todo/1".to_owned(),
             name: "created".to_owned(),

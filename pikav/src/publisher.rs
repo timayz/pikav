@@ -313,7 +313,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         Ok(())
     }
 
-    pub async fn publish(&self, events: Vec<&Message<SimpleEvent>>) {
+    pub async fn publish(&self, events: Vec<Message<SimpleEvent>>) {
         let user_clients = self.user_clients.read().await;
         let clients = self.clients.read().await;
         let mut futures = Vec::new();
@@ -337,7 +337,7 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
 
     pub async fn publish_events<D: Serialize + Clone, M: Serialize + Clone>(
         &self,
-        events: Vec<&Message<Event<D, M>>>,
+        events: Vec<Message<Event<D, M>>>,
     ) {
         let user_clients = self.user_clients.read().await;
         let clients = self.clients.read().await;

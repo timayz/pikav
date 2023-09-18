@@ -9,7 +9,7 @@ members = [
     "./pikav",
     "./pikav-client",
     "./pikav-web",
-    "./example"
+    "./examples/leptos"
 ]
 
 [profile.release]

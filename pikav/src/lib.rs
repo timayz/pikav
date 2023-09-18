@@ -4,4 +4,4 @@ mod event;
 pub mod publisher;
 
 #[cfg(feature = "event")]
-pub use event::Event;
+pub use event::{Event, SimpleEvent};

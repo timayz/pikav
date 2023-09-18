@@ -6,8 +6,16 @@ option go_package = "github.com/timayz/pikav-go/proto/timada";
 
 service Pikav {
     rpc Publish(PublishRequest) returns (PublishReply) {}
+    rpc PublishEvents(PublishEventsRequest) returns (PublishEventsReply) {}
     rpc Subscribe(SubscribeRequest) returns (SubscribeReply) {}
     rpc Unsubscribe(UnsubscribeRequest) returns (UnsubscribeReply) {}
+}
+
+message SimpleEvent {
+    string user_id = 1;
+    string topic = 2;
+    string event = 3;
+    string data = 4;
 }
 
 message Event {
@@ -48,11 +56,20 @@ message ListValue {
 }
 
 message PublishRequest {
-    repeated Event events = 1;
+    repeated SimpleEvent events = 1;
     bool propagate = 2;
 }
 
 message PublishReply {
+    bool success = 1;
+}
+
+message PublishEventsRequest {
+    repeated Event events = 1;
+    bool propagate = 2;
+}
+
+message PublishEventsReply {
     bool success = 1;
 }
 

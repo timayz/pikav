@@ -1,12 +1,13 @@
 use bytes::Bytes;
 use pikav::{
     publisher::{Message, Publisher},
-    Event,
+    Event, SimpleEvent,
 };
 use pikav_client::{
     timada::{
-        pikav_server::PikavServer, PublishReply, PublishRequest, SubscribeReply, SubscribeRequest,
-        UnsubscribeReply, UnsubscribeRequest,
+        pikav_server::{self, PikavServer},
+        PublishEventsReply, PublishEventsRequest, PublishReply, PublishRequest, SubscribeReply,
+        SubscribeRequest, UnsubscribeReply, UnsubscribeRequest,
     },
     Client,
 };
@@ -20,31 +21,42 @@ pub struct Pikav {
 }
 
 #[tonic::async_trait]
-impl pikav_client::timada::pikav_server::Pikav for Pikav {
+impl pikav_server::Pikav for Pikav {
     async fn publish(
         &self,
         request: Request<PublishRequest>,
     ) -> Result<Response<PublishReply>, Status> {
         let req = request.into_inner();
 
-        let mut messages: Vec<Message<Event<Value, Value>>> = Vec::new();
+        // let mut messages: Vec<Message<SimpleEvent>> = Vec::new();
 
-        for e in req.events.iter() {
-            messages.push(Message {
-                event: Event {
-                    topic: e.topic.to_owned(),
-                    name: e.name.to_owned(),
-                    data: e.data.clone().into(),
-                    metadata: e.metadata.clone().map(Into::into),
-                    filters: None,
+        // for e in req.events.iter() {
+        //     messages.push(Message {
+        //         event: SimpleEvent {
+        //             topic: e.topic.to_owned(),
+        //             event: e.event.to_owned(),
+        //             data: e.data.clone().into(),
+        //             metadata: e.metadata.clone().map(Into::into),
+        //             filters: None,
+        //         },
+        //         user_id: e.user_id.to_owned(),
+        //     });
+        // }
+
+        let messages = req
+            .events
+            .iter()
+            .map(|event| Message {
+                event: SimpleEvent {
+                    topic: event.topic.to_owned(),
+                    event: event.event.to_owned(),
+                    data: event.data.to_owned(),
                 },
-                user_id: e.user_id.to_owned(),
-            });
-        }
+                user_id: event.user_id.to_owned(),
+            })
+            .collect::<_>();
 
-        self.publisher
-            .publish_events(messages.iter().collect::<_>())
-            .await;
+        self.publisher.publish(messages).await;
 
         if req.propagate {
             for node in self.nodes.iter() {
@@ -53,6 +65,38 @@ impl pikav_client::timada::pikav_server::Pikav for Pikav {
         }
 
         Ok(Response::new(PublishReply { success: true }))
+    }
+
+    async fn publish_events(
+        &self,
+        request: Request<PublishEventsRequest>,
+    ) -> Result<Response<PublishEventsReply>, Status> {
+        let req = request.into_inner();
+
+        let messages = req
+            .events
+            .iter()
+            .map(|event| Message {
+                event: Event::<Value, Value> {
+                    topic: event.topic.to_owned(),
+                    name: event.name.to_owned(),
+                    data: event.data.clone().into(),
+                    metadata: event.metadata.clone().map(Into::into),
+                    filters: None,
+                },
+                user_id: event.user_id.to_owned(),
+            })
+            .collect::<_>();
+
+        self.publisher.publish_events(messages).await;
+
+        if req.propagate {
+            for node in self.nodes.iter() {
+                node.publish_events(req.events.clone());
+            }
+        }
+
+        Ok(Response::new(PublishEventsReply { success: true }))
     }
 
     async fn subscribe(
