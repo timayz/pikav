@@ -99,7 +99,7 @@ async fn events(publisher: Data<Publisher<Bytes>>) -> Result<HttpResponse, ApiEr
 }
 
 #[get("/events/{filter:.*}")]
-async fn events_filter(
+async fn events_subscribe(
     params: web::Path<(String,)>,
     publisher: Data<Publisher<Bytes>>,
     nodes: Data<Vec<client::Client>>,
@@ -192,7 +192,7 @@ impl App {
                 .service(subscribe)
                 .service(unsubscribe)
                 .service(events)
-                .service(events_filter)
+                .service(events_subscribe)
         })
         .bind(self.options.listen.to_owned())?
         .run()
