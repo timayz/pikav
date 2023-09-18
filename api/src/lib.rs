@@ -86,12 +86,48 @@ async fn unsubscribe(
 #[get("/events")]
 async fn events(publisher: Data<Publisher<Bytes>>) -> Result<HttpResponse, ApiError> {
     let rx = match publisher.create_client(true).await {
+        Some((rx, _)) => rx,
+        _ => {
+            return ApiError::InternalServerError("Failed to create client".to_owned())
+                .into_response()
+        }
+    };
+
+    Ok(HttpResponse::Ok()
+        .append_header(("Content-Type", "text/event-stream"))
+        .streaming(Client(rx)))
+}
+
+#[get("/events/{filter:.*}")]
+async fn events_filter(
+    params: web::Path<(String,)>,
+    publisher: Data<Publisher<Bytes>>,
+    nodes: Data<Vec<client::Client>>,
+    JwtPayload(payload): JwtPayload<JwtClaims>,
+) -> Result<HttpResponse, ApiError> {
+    let (rx, id) = match publisher.create_client(true).await {
         Some(rx) => rx,
         _ => {
             return ApiError::InternalServerError("Failed to create client".to_owned())
                 .into_response()
         }
     };
+
+    let params = params.into_inner();
+
+    publisher
+        .subscribe(params.0.to_owned(), &payload.sub, &id)
+        .await
+        .ok();
+
+    for node in nodes.iter().filter(|n| n.same_region) {
+        node.subscribe(SubscribeRequest {
+            filter: params.0.to_owned(),
+            client_id: id.to_owned(),
+            user_id: payload.sub.to_owned(),
+        })
+        .await?;
+    }
 
     Ok(HttpResponse::Ok()
         .append_header(("Content-Type", "text/event-stream"))
@@ -156,6 +192,7 @@ impl App {
                 .service(subscribe)
                 .service(unsubscribe)
                 .service(events)
+                .service(events_filter)
         })
         .bind(self.options.listen.to_owned())?
         .run()
