@@ -28,14 +28,14 @@ impl Publish {
     pub async fn run(&self) -> Result<(), std::io::Error> {
         let client = Client::new(ClientOptions {
             url: format!("http://{}", self.addr.cluster.to_owned()),
-            namespace: "_",
+            namespace: "example",
         })
         .unwrap();
 
         client.publish_events(vec![Event {
-            user_id: "hubert@client".to_owned(),
-            topic: "todo/1".to_owned(),
-            name: "created".to_owned(),
+            user_id: "hubert@clients".to_owned(),
+            topic: "todos/1".to_owned(),
+            name: "Created".to_owned(),
             data: Some(
                 json!({
                     "id": 1,
