@@ -3,9 +3,9 @@
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
     use actix_web::*;
-    use example::app::*;
     use leptos::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
+    use leptos_example::app::*;
     use sqlx::sqlite::SqlitePool;
 
     let pikv_client = pikav_client::Client::new(pikav_client::ClientOptions {

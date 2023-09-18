@@ -3,7 +3,10 @@ use parking_lot::RwLock;
 use serde::Deserialize;
 use serde_json::Map;
 use std::{collections::HashMap, sync::Arc, time::Duration};
-use timada::{pikav_client::PikavClient, PublishRequest, Struct, SubscribeReply, UnsubscribeReply};
+use timada::{
+    pikav_client::PikavClient, PublishEventsRequest, PublishRequest, SimpleEvent, Struct,
+    SubscribeReply, UnsubscribeReply,
+};
 use tokio::time::{interval_at, sleep, Instant};
 use tonic::transport::Channel;
 use tracing::error;
@@ -144,7 +147,8 @@ pub struct ClientInstanceOptions {
 #[derive(Clone)]
 pub struct Client {
     channel: Channel,
-    queue: Arc<RwLock<Vec<Event>>>,
+    queue: Arc<RwLock<Vec<SimpleEvent>>>,
+    queue_events: Arc<RwLock<Vec<Event>>>,
     namespace: Option<String>,
     pub same_region: bool,
 }
@@ -196,11 +200,13 @@ impl Client {
         let client = Self {
             channel,
             queue: Arc::new(RwLock::new(Vec::new())),
+            queue_events: Arc::new(RwLock::new(Vec::new())),
             namespace: options.namespace,
             same_region,
         };
 
         Self::spawn_queue(client.clone());
+        Self::spawn_queue_events(client.clone());
 
         Ok(client)
     }
@@ -260,9 +266,69 @@ impl Client {
         });
     }
 
-    pub fn publish(&self, events: Vec<Event>) {
+    fn spawn_queue_events(me: Self) {
+        tokio::spawn(async move {
+            let mut interval = interval_at(Instant::now(), Duration::from_millis(300));
+
+            loop {
+                interval.tick().await;
+
+                let events = {
+                    let queue = me.queue_events.read();
+
+                    if queue.len() == 0 {
+                        continue;
+                    }
+
+                    let mut events = Vec::new();
+
+                    for event in queue.iter().take(1000) {
+                        let mut event = event.clone();
+
+                        if let Some(namespace) = &me.namespace {
+                            event.topic = format!("{}/{}", namespace, event.topic)
+                        }
+
+                        events.push(event.clone());
+                    }
+
+                    events
+                };
+
+                if events.is_empty() {
+                    continue;
+                }
+
+                let event_size = events.len();
+                let mut client = PikavClient::new(me.channel.clone());
+
+                let request = tonic::Request::new(PublishEventsRequest {
+                    propagate: me.namespace.is_some(),
+                    events,
+                });
+
+                if let Err(e) = client.publish_events(request).await {
+                    error!("{e}");
+                    sleep(Duration::from_secs(1)).await;
+                    continue;
+                }
+
+                {
+                    let mut queue = me.queue_events.write();
+                    queue.drain(0..event_size);
+                }
+            }
+        });
+    }
+
+    pub fn publish(&self, events: Vec<SimpleEvent>) {
         let mut queue = self.queue.write();
         queue.extend(events);
+    }
+
+    pub fn publish_events(&self, events: Vec<Event>) {
+        let mut queue_events = self.queue_events.write();
+        queue_events.extend(events);
     }
 
     pub async fn subscribe(

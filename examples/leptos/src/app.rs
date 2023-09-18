@@ -120,7 +120,7 @@ async fn create_todo(user_id: String, text: String) -> Result<(), ServerFnError>
 
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
-        client.publish(vec![Event {
+        client.publish_events(vec![Event {
             user_id,
             topic: format!("todos/{id}"),
             name: "Created".to_owned(),
@@ -168,7 +168,7 @@ async fn delete_todo(user_id: String, id: i64) -> Result<(), ServerFnError> {
 
         sleep(Duration::from_secs(rng.gen_range(0..3))).await;
 
-        client.publish(vec![Event {
+        client.publish_events(vec![Event {
             user_id,
             topic: format!("todos/{id}"),
             name: "Deleted".to_owned(),

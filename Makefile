@@ -58,9 +58,7 @@ deny:
 
 udeps:
 	cargo udeps -p cmd -p pikav-api -p pikav-cluster -p pikav -p pikav-client -p pikav-web
-
-udeps.leptos:
-	cargo udeps --features ssr,hydrate -p example
+	cargo udeps --features ssr,hydrate -p leptos-example
 
 advisory.clean:
 	rm -rf ~/.cargo/advisory-db
