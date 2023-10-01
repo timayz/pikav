@@ -319,6 +319,14 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         let mut futures = Vec::new();
 
         for event in events {
+            if &event.user_id == "$all" {
+                for (_, client) in clients.iter() {
+                    futures.push(client.filter_send(event.event.clone()));
+                }
+
+                continue;
+            }
+
             let ids = match user_clients.get(&event.user_id) {
                 Some(clients) => clients,
                 None => continue,
@@ -344,6 +352,14 @@ impl<T: From<String> + Clone + Debug + Sync + Send + 'static> Publisher<T> {
         let mut futures = Vec::new();
 
         for event in events {
+            if &event.user_id == "$all" {
+                for (_, client) in clients.iter() {
+                    futures.push(client.filter_send_event(event.event.clone()));
+                }
+
+                continue;
+            }
+
             let ids = match user_clients.get(&event.user_id) {
                 Some(clients) => clients,
                 None => continue,
