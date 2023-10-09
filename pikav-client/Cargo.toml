@@ -1,6 +1,6 @@
 [package]
 name = "pikav-client"
-version = "0.20.0"
+version = "0.20.1"
 edition = "2021"
 license = "Apache-2.0"
 publish = true
@@ -8,6 +8,9 @@ description = "A client that help you publish to pikav server"
 repository = "https://github.com/timayz/pikav"
 homepage = "https://pikav.timada.co"
 documentation = "https://docs.rs/pikav-client"
+
+[package.metadata.cargo-machete]
+ignored = ["prost"]
 
 [dependencies]
 serde = { version = "1.0.188", features = ["derive"] }
@@ -22,6 +25,3 @@ url = "2.4.1"
 
 [build-dependencies]
 tonic-build = { version = "0.10.2", features = ["prost"] }
-
-[package.metadata.cargo-machete]
-ignored = ["prost"]
