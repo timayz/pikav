@@ -12,6 +12,9 @@ members = [
     "./examples/leptos"
 ]
 
+[workspace.metadata.cargo-machete]
+ignored = ["prost"]
+
 [profile.release]
 codegen-units = 1
 panic = "abort"

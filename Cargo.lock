@@ -1686,7 +1686,6 @@ dependencies = [
  "cfg-if",
  "console_error_panic_hook",
  "console_log",
- "futures",
  "leptos",
  "leptos_actix",
  "leptos_meta",
@@ -1700,7 +1699,6 @@ dependencies = [
  "serde_json",
  "sqlx",
  "wasm-bindgen",
- "web-sys",
 ]
 
 [[package]]
@@ -2338,7 +2336,6 @@ dependencies = [
  "actix-web",
  "futures-core",
  "futures-util",
- "parking_lot",
  "pikav",
  "pikav-client",
  "serde",
@@ -2354,8 +2351,6 @@ version = "0.20.0"
 dependencies = [
  "parking_lot",
  "prost",
- "prost-derive",
- "prost-types",
  "serde",
  "serde_json",
  "thiserror",
@@ -2373,12 +2368,9 @@ dependencies = [
  "bytes",
  "pikav",
  "pikav-client",
- "prost",
  "serde",
  "serde_json",
- "tokio",
  "tonic",
- "tracing",
 ]
 
 [[package]]
@@ -2392,7 +2384,6 @@ dependencies = [
  "leptos",
  "log",
  "pikav",
- "serde",
  "serde_json",
  "wasm-bindgen-futures",
 ]
@@ -2732,9 +2723,23 @@ dependencies = [
  "libc",
  "once_cell",
  "spin 0.5.2",
- "untrusted",
+ "untrusted 0.7.1",
  "web-sys",
  "winapi",
+]
+
+[[package]]
+name = "ring"
+version = "0.17.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "911b295d2d302948838c8ac142da1ee09fa7863163b44e6715bc9357905878b8"
+dependencies = [
+ "cc",
+ "getrandom",
+ "libc",
+ "spin 0.9.8",
+ "untrusted 0.9.0",
+ "windows-sys",
 ]
 
 [[package]]
@@ -2835,7 +2840,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd8d6c9f025a446bc4d18ad9632e69aec8f287aa84499ee335599fabd20c3fd8"
 dependencies = [
  "log",
- "ring",
+ "ring 0.16.20",
  "rustls-webpki",
  "sct",
 ]
@@ -2855,8 +2860,8 @@ version = "0.101.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c7d5dece342910d9ba34d259310cae3e0154b873b35408b787b59bce53d34fe"
 dependencies = [
- "ring",
- "untrusted",
+ "ring 0.16.20",
+ "untrusted 0.7.1",
 ]
 
 [[package]]
@@ -2892,8 +2897,8 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d53dcdb7c9f8158937a7981b48accfd39a43af418591a5d008c7b22b5e1b7ca4"
 dependencies = [
- "ring",
- "untrusted",
+ "ring 0.16.20",
+ "untrusted 0.7.1",
 ]
 
 [[package]]
@@ -3753,15 +3758,15 @@ checksum = "3528ecfd12c466c6f163363caf2d02a71161dd5e1cc6ae7b34207ea2d42d81ed"
 
 [[package]]
 name = "twa-jwks"
-version = "1.2.1"
+version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "562af4e49c57a631179c03c5d26bbc3726e9072d9d05935c498cfc555c074ea4"
+checksum = "75d842410ab7f7a1abd1dc0e519c52f3f4268efc8dac9b0dc22a31d8db526203"
 dependencies = [
  "actix-web",
  "base64 0.21.4",
  "futures-util",
  "regex",
- "ring",
+ "ring 0.17.2",
  "serde",
  "serde_json",
  "thiserror",
@@ -3855,6 +3860,12 @@ name = "untrusted"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
+
+[[package]]
+name = "untrusted"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
 name = "ureq"

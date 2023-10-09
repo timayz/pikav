@@ -39,12 +39,10 @@ leptos_actix = { version = "0.5.1", optional = true }
 leptos_router = { version = "0.5.1" }
 log = "0.4.20"
 wasm-bindgen = "0.2.87"
-web-sys = { version = "0.3.64", features = ["HtmlDocument"] }
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = { version = "1.0.107" }
 sqlx = { version = "0.7.2", optional = true, features = [ "runtime-tokio", "sqlite" ] }
 rand = { version = "0.8.5", optional = true }
-futures = { version = "0.3.28", optional = true }
 reqwest = { version = "0.11.22", default-features = false, features = ["rustls-tls", "json"] }
 
 [features]
@@ -61,7 +59,6 @@ ssr = [
 	"dep:leptos_actix",
 	"dep:sqlx",
 	"dep:rand",
-	"dep:futures",
 	"dep:pikav-client",
 	"leptos/ssr",
 	"leptos_meta/ssr",
