@@ -2368,7 +2368,6 @@ dependencies = [
  "bytes",
  "pikav",
  "pikav-client",
- "serde",
  "serde_json",
  "tonic",
 ]

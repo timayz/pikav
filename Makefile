@@ -56,9 +56,8 @@ fmt:
 deny:
 	cargo deny check
 
-udeps:
-	cargo udeps -p cmd -p pikav-api -p pikav-cluster -p pikav -p pikav-client -p pikav-web
-	cargo udeps --features ssr,hydrate -p leptos-example
+machete:
+	cargo machete
 
 advisory.clean:
 	rm -rf ~/.cargo/advisory-db
