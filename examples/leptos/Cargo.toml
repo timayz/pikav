@@ -39,7 +39,7 @@ leptos_actix = { version = "0.5.1", optional = true }
 leptos_router = { version = "0.5.1" }
 log = "0.4.20"
 wasm-bindgen = "0.2.87"
-serde = { version = "1.0.188", features = ["derive"] }
+serde = { version = "1.0.189", features = ["derive"] }
 serde_json = { version = "1.0.107" }
 sqlx = { version = "0.7.2", optional = true, features = [ "runtime-tokio", "sqlite" ] }
 rand = { version = "0.8.5", optional = true }
