@@ -14,11 +14,11 @@ pikav = { path = "../pikav", features = ["event"], version = "0.20.2" }
 anyhow = "1.0.75"
 gloo-net = "0.4.0"
 serde_json = "1.0.107"
-futures = "0.3.28"
+futures = "0.3.29"
 wasm-bindgen-futures = { version = "0.4.37", optional = true }
 log = { version = "0.4.20", optional = true }
 cfg-if = "1.0.0"
-leptos = { version = "0.5.1", features = ["serde"], optional = true }
+leptos = { version = "0.5.2", features = ["serde"], optional = true }
 
 [features]
 default = []
