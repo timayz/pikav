@@ -38,9 +38,9 @@ leptos_meta = { version = "0.5.2" }
 leptos_actix = { version = "0.5.2", optional = true }
 leptos_router = { version = "0.5.2" }
 log = "0.4.20"
-wasm-bindgen = "0.2.87"
-serde = { version = "1.0.190", features = ["derive"] }
-serde_json = { version = "1.0.107" }
+wasm-bindgen = "0.2.88"
+serde = { version = "1.0.192", features = ["derive"] }
+serde_json = { version = "1.0.108" }
 sqlx = { version = "0.7.2", optional = true, features = [ "runtime-tokio", "sqlite" ] }
 rand = { version = "0.8.5", optional = true }
 reqwest = { version = "0.11.22", default-features = false, features = ["rustls-tls", "json"] }
