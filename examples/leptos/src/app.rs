@@ -298,7 +298,9 @@ fn HomePage() -> impl IntoView {
                         .unwrap()
                         .as_ref()
                         .unwrap()
-                        .iter().filter(|&todo| todo.id != id).cloned()
+                        .iter()
+                        .filter(|&todo| todo.id != id)
+                        .cloned()
                         .collect::<Vec<_>>();
                 });
             }
