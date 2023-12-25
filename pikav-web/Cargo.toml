@@ -1,6 +1,6 @@
 [package]
 name = "pikav-web"
-version = "0.20.6"
+version = "0.20.7"
 edition = "2021"
 license = "Apache-2.0"
 publish = true
@@ -10,7 +10,7 @@ homepage = "https://pikav.timada.co"
 documentation = "https://docs.rs/pikav-client"
 
 [dependencies]
-pikav = { path = "../pikav", features = ["event"], version = "0.20.6" }
+pikav = { path = "../pikav", features = ["event"], version = "0.20.7" }
 anyhow = "1.0.76"
 gloo-net = "0.5.0"
 serde_json = "1.0.108"
