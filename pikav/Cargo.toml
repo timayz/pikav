@@ -10,11 +10,11 @@ homepage = "https://pikav.timada.co"
 documentation = "https://docs.rs/pikav"
 
 [dependencies]
-tokio = { version = "1.35.0", features = ["full"], optional = true }
+tokio = { version = "1.35.1", features = ["full"], optional = true }
 nanoid = { version = "0.4.0", optional = true }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "1.0.108", optional = true }
-futures = { version = "0.3.29", optional = true }
+futures = { version = "0.3.30", optional = true }
 glob-match = "0.2.1"
 
 [features]
