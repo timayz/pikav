@@ -700,7 +700,7 @@ checksum = "702fc72eb24e5a1e48ce58027a675bc24edd52096d5397d4aea7c6dd9eca0bd1"
 
 [[package]]
 name = "cmd"
-version = "0.20.8"
+version = "0.20.9"
 dependencies = [
  "actix-rt",
  "clap",
@@ -1679,7 +1679,7 @@ dependencies = [
 
 [[package]]
 name = "leptos-example"
-version = "0.20.8"
+version = "0.20.9"
 dependencies = [
  "actix-files",
  "actix-web",
@@ -2330,7 +2330,7 @@ dependencies = [
 
 [[package]]
 name = "pikav"
-version = "0.20.8"
+version = "0.20.9"
 dependencies = [
  "futures",
  "glob-match",
@@ -2342,7 +2342,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-api"
-version = "0.20.8"
+version = "0.20.9"
 dependencies = [
  "actix-cors",
  "actix-web",
@@ -2359,7 +2359,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-client"
-version = "0.20.8"
+version = "0.20.9"
 dependencies = [
  "parking_lot",
  "prost",
@@ -2375,7 +2375,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-cluster"
-version = "0.20.8"
+version = "0.20.9"
 dependencies = [
  "bytes",
  "pikav",
@@ -2386,7 +2386,7 @@ dependencies = [
 
 [[package]]
 name = "pikav-web"
-version = "0.20.8"
+version = "0.20.9"
 dependencies = [
  "anyhow",
  "cfg-if",
