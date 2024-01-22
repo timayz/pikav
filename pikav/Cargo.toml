@@ -1,6 +1,6 @@
 [package]
 name = "pikav"
-version = "0.20.10"
+version = "0.20.11"
 edition = "2021"
 license = "Apache-2.0"
 publish = true
