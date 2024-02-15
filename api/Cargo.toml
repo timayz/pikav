@@ -1,12 +1,12 @@
 [package]
 name = "pikav-api"
-version = "0.20.11"
+version = "0.20.12"
 edition = "2021"
 license = "Apache-2.0"
 
 [dependencies]
-pikav = { path = "../pikav", version = "0.20.11" }
-pikav-client = { path = "../pikav-client", version = "0.20.11" }
+pikav = { path = "../pikav", version = "0.20.12" }
+pikav-client = { path = "../pikav-client", version = "0.20.12" }
 actix-web = "4.5.1"
 actix-cors = "0.7.0"
 serde = "1.0.196"
