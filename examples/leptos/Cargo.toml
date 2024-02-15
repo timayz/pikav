@@ -29,21 +29,21 @@ crate-type = ["cdylib", "rlib"]
 pikav-web = { path = "../../pikav-web", version = "0.20.11", features = ["leptos"] }
 pikav-client = { path = "../../pikav-client", version = "0.20.11", optional = true }
 actix-files = { version = "0.6.5", optional = true }
-actix-web = { version = "4.4.1", optional = true, features = ["macros"] }
+actix-web = { version = "4.5.1", optional = true, features = ["macros"] }
 console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"
 cfg-if = "1.0.0"
-leptos = { version = "0.5.7", features = ["serde"] }
-leptos_meta = { version = "0.5.7" }
-leptos_actix = { version = "0.5.7", optional = true }
-leptos_router = { version = "0.5.7" }
+leptos = { version = "0.6.5", features = ["serde"] }
+leptos_meta = { version = "0.6.5" }
+leptos_actix = { version = "0.6.5", optional = true }
+leptos_router = { version = "0.6.5" }
 log = "0.4.20"
-wasm-bindgen = "0.2.90"
-serde = { version = "1.0.195", features = ["derive"] }
-serde_json = { version = "1.0.111" }
+wasm-bindgen = "0.2.91"
+serde = { version = "1.0.196", features = ["derive"] }
+serde_json = { version = "1.0.113" }
 sqlx = { version = "0.7.3", optional = true, features = [ "runtime-tokio", "sqlite" ] }
 rand = { version = "0.8.5", optional = true }
-reqwest = { version = "0.11.23", default-features = false, features = ["rustls-tls", "json"] }
+reqwest = { version = "0.11.24", default-features = false, features = ["rustls-tls", "json"] }
 
 [features]
 default = []
