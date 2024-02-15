@@ -15,4 +15,4 @@ futures-core = "0.3.30"
 futures-util = "0.3.30"
 thiserror = "1.0.57"
 tracing = "0.1.40"
-twa-jwks = { version = "1.2.13", features = ["actix-web"] }
+twa-jwks = { version = "1.2.14", features = ["actix-web"] }
