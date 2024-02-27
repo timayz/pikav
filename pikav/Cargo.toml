@@ -12,8 +12,8 @@ documentation = "https://docs.rs/pikav"
 [dependencies]
 tokio = { version = "1.36.0", features = ["full"], optional = true }
 nanoid = { version = "0.4.0", optional = true }
-serde = { version = "1.0.196", features = ["derive"] }
-serde_json = { version = "1.0.113", optional = true }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114", optional = true }
 futures = { version = "0.3.30", optional = true }
 glob-match = "0.2.1"
 
