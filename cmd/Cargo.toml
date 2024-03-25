@@ -11,7 +11,7 @@ pikav-client = { path = "../pikav-client", version = "0.20.14" }
 config = "0.14.0"
 serde = "1.0.197"
 serde_json = "1.0.114"
-clap = "4.5.1"
+clap = "4.5.3"
 actix-rt = "2.9.0"
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
